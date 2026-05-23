@@ -1,0 +1,82 @@
+/* Container Layout */
+.orders-container {
+  background: #000;
+  min-height: 100vh;
+  padding: 30px;
+  color: #fff;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.kds-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #1a1a1a;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+/* Card Styling */
+.order-card {
+  background: linear-gradient(145deg, #0d0d0d, #050505);
+  border: 1px solid #222;
+  border-radius: 4px; /* Harder edges for bunker look */
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+
+.border-green { border-left: 6px solid #00ff41; }
+.border-gold { border-left: 6px solid #ffc107; }
+
+/* Item Typography */
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #111;
+}
+
+.item-name-text {
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.caution-note {
+  color: #000;
+  background: #ffc107;
+  padding: 2px 8px;
+  font-weight: 900;
+  font-size: 0.75rem;
+  clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%); /* Angled edges */
+}
+
+/* Buttons */
+.action-buttons button {
+  padding: 12px 20px;
+  border: 1px solid transparent;
+  font-weight: 900;
+  cursor: pointer;
+  margin-left: 10px;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+.btn-verify { background: #00ff41; color: #000; }
+.btn-prepare { background: transparent; border-color: #ffc107; color: #ffc107; }
+.btn-done { background: #fff; color: #000; }
+
+.btn-prepare:hover { background: #ffc107; color: #000; }
+
+/* Animations */
+.pulse-green {
+  background: #00ff41;
+  box-shadow: 0 0 10px #00ff41;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 1; }
+}

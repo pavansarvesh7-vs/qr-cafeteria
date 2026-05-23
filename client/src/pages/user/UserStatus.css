@@ -1,0 +1,79 @@
+.status-screen {
+  background: #000;
+  color: #fff;
+  min-height: 100vh;
+  padding: 40px 20px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.id-tag { color: #555; font-size: 0.7rem; letter-spacing: 2px; }
+
+.glitch-text {
+  font-size: 2rem;
+  color: #ffc107; /* Gold accent */
+  text-shadow: 0 0 10px rgba(255, 193, 7, 0.4);
+  margin-top: 10px;
+}
+
+/* Progress Bar Logic */
+.progress-container {
+  margin: 60px 0;
+  height: 4px;
+  background: #111;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #ffc107;
+  transition: width 1s ease-in-out;
+  position: relative;
+  box-shadow: 0 0 15px #ffc107;
+}
+
+.glow-tip {
+  position: absolute;
+  right: 0;
+  top: -4px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 20px #fff;
+}
+
+.stage-markers {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.stage-markers span {
+  font-size: 0.6rem;
+  color: #333;
+  font-weight: 900;
+}
+
+.stage-markers span.active {
+  color: #ffc107;
+}
+
+/* Detail Card */
+.order-details-card {
+  background: #080808;
+  border: 1px solid #1a1a1a;
+  padding: 20px;
+  border-radius: 4px;
+}
+
+.total-box {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #111;
+  padding-top: 15px;
+  margin-top: 15px;
+  color: #555;
+  font-size: 0.8rem;
+}
+
+.price { color: #00ff41; font-weight: bold; }

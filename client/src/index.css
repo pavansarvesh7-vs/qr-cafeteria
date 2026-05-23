@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+body {
+  margin: 0;
+  background-color: #050608;
+  font-family: 'Share Tech Mono', monospace !important;
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+/* Tactical Shimmer Line Animation */
+@keyframes scanningLine {
+  0% { top: 0%; opacity: 0.8; }
+  50% { opacity: 0.3; }
+  100% { top: 100%; opacity: 0.8; }
+}
+
+/* Status Pulse States */
+@keyframes cyberPulse {
+  0% { box-shadow: 0 0 5px rgba(0, 255, 65, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(0, 255, 65, 0.6); }
+  100% { box-shadow: 0 0 5px rgba(0, 255, 65, 0.2); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
