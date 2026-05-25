@@ -8,8 +8,8 @@ function Register() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com";
-const API_BASE = `${SERVER_IP}/api/auth`;
+  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com";
+  const API_BASE = `${SERVER_IP}/api/auth`;
   const selectedRole = localStorage.getItem("userRoleChoice") || "user";
   const themeAccent = selectedRole === "admin" ? "#ff3d00" : "#03dac6"; 
   const themeGlow = selectedRole === "admin" ? "rgba(255,61,0,0.12)" : "rgba(3,218,198,0.12)";
@@ -19,7 +19,8 @@ const API_BASE = `${SERVER_IP}/api/auth`;
     setLoading(true);
 
     try {
-      const res = await fetch(API_URL, {
+      // 🚀 FIXED: Pointing directly to the real auth endpoint mapping matrix
+      const res = await fetch(`${API_BASE}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
