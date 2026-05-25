@@ -19,8 +19,8 @@ export default function UserHome() {
   const [isInitializingScan, setIsInitializingScan] = useState(false);
 
   // --- 🚀 CORRECTED SAFE ENVIRONMENT ROUTING ENGINE ---
-  // Default directly to your production backend mesh instead of breaking with local hardcodes
-  const API_BASE = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com";
+  // 🛡️ FIXED: Pointing the fallback directly to your operational production engine matrix
+  const API_BASE = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com";
 
   // Parse table metadata cleanly
   const queryParams = React.useMemo(() => new URLSearchParams(location.search), [location.search]);
