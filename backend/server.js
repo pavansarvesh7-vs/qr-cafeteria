@@ -13,7 +13,12 @@ const app = express();
 // ==========================================
 // 2. MIDDLEWARE CONFIGURATION
 // ==========================================
-app.use(cors());
+// 🛡️ Permissive CORS rule to handle the frontend cross-domain preflight handshakes
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -28,8 +33,11 @@ app.get('/', (req, res) => {
 });
 
 // ==========================================
-// 4. API ROUTES (Uncomment as you build them out)
+// 4. API ROUTES
 // ==========================================
+// 🔐 LINK THE AUTH ROUTES MATRIX (Make sure authRoutes.js exists in your routes folder!)
+app.use('/api/auth', require('./routes/authRoutes'));
+
 // app.use('/api/menu', require('./routes/menuRoutes'));
 // app.use('/api/orders', require('./routes/orderRoutes'));
 
