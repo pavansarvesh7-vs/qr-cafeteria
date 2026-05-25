@@ -10,7 +10,9 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// ==========================================
 // 1. GET ALL: Fetches all product entities
+// ==========================================
 router.get('/', async (req, res) => {
   try {
     const products = await Product.findAll();
@@ -20,7 +22,9 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ==========================================
 // 2. PUT UPDATE: Modifies an existing asset
+// ==========================================
 router.put('/:id', upload.single('image'), async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
@@ -33,27 +37,44 @@ router.put('/:id', upload.single('image'), async (req, res) => {
       imageName = req.file.filename;
     }
 
-    await product.update({ name, price, image: imageName });
+    // 🔄 ALIGNED: Explicit conversion to avoid type errors on SQL insert
+    await product.update({ 
+      name, 
+      price: price ? parseFloat(price) : product.price, 
+      image: imageName 
+    });
+    
     res.json(product);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// ==========================================
 // 3. POST ADD: For creating new entries
+// ==========================================
 router.post('/add', upload.single('image'), async (req, res) => {
   try {
     const { name, price } = req.body;
     const imageName = req.file ? req.file.filename : null;
-    const product = await Product.create({ name, price, image: imageName });
+    
+    // 🔄 ALIGNED: Explicit conversion to avoid type errors on SQL insert
+    const product = await Product.create({ 
+      name, 
+      price: parseFloat(price) || 0.0, 
+      image: imageName 
+    });
+    
     res.status(201).json(product);
   } catch (err) { 
     res.status(500).json({ error: err.message }); 
   }
 });
 
-// 4. 🔥 ADDED: DELETE PURGE ROUTE
-router.delete('/:id', async (req, res, next) => {
+// ==========================================
+// 4. DELETE PURGE ROUTE
+// ==========================================
+router.delete('/:id', async (req, res) => {
   try {
     const productId = req.params.id;
 
@@ -81,7 +102,6 @@ router.delete('/:id', async (req, res, next) => {
       });
     }
     
-    // Pass other unexpected database errors cleanly down to server.js logger
     res.status(500).json({ error: "DATABASE_PURGE_FAILURE", details: err.message });
   }
 });

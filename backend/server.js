@@ -22,6 +22,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploaded static files securely (Images for menu items)
+app.use('/uploads', express.static('uploads'));
+
 // ==========================================
 // 3. HEALTH CHECK & BASE ROUTE
 // ==========================================
@@ -33,25 +36,21 @@ app.get('/', (req, res) => {
 });
 
 // ==========================================
-// 4. API ROUTES (Explicit Naming Configuration)
+// 4. API ROUTES (Explicit CommonJS Formats)
 // ==========================================
 // 🔐 AUTHENTICATION MATRIX
 app.use('/api/auth', require('./routes/authRoutes'));
 
 // 🍔 MENU MANAGEMENT PIPELINE
-// Maps to: routes/menu.js
 app.use('/api/menu', require('./routes/menu'));
 
 // 🛒 CUSTOMER ORDER INTAKE ENGINE
-// Maps to: routes/orderRoutes.js
 app.use('/api/orders', require('./routes/orderRoutes'));
 
 // 🚨 LIVE TABLE ASSISTANCE QUEUE
-// Maps to: routes/serviceRoutes.js
 app.use('/api/service', require('./routes/serviceRoutes'));
 
-// 📦 PRODUCT METADATA ROUTER (Matches extra project controller file)
-// Maps to: routes/productRoutes.js
+// 📦 PRODUCT METADATA ROUTER
 app.use('/api/products', require('./routes/productRoutes'));
 
 // ==========================================
@@ -63,10 +62,9 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('✅ DATABASE_CONNECTION_ESTABLISHED');
     
-    // 🛡️ SAFE TIDB ALIGNMENT PATCH
-    // Using standard sync() instead of { alter: true } to prevent UNIQUE constraint crashes on TiDB Cloud
-    await sequelize.sync(); 
-    console.log('📦 DATABASE_MODELS_SYNCED_AND_UPDATED');
+    // 🛡️ SAFEST PRODUCTION PATTERN FOR TIDB CLOUD:
+    // Schema changes are explicitly managed manually to bypass live DDL restriction dropouts.
+    console.log('📦 DATABASE_MODELS_SYNC_BYPASSED (SCHEMA STRUCTURE IS LOCKED)');
     
     // Production deployment structural network overrides for Render hosting
     const PORT = process.env.PORT || 5000; 
@@ -79,7 +77,8 @@ const startServer = async () => {
       console.log('===========================================');
     });
   } catch (err) {
-    console.error('❌ CRITICAL_STARTUP_FAILURE:', err.message);
+    console.error('❌ CRITICAL_STARTUP_FAILURE FULL ERROR DETAILS BELOW:');
+    console.error(err);
     process.exit(1);
   }
 };

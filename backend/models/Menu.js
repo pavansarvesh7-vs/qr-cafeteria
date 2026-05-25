@@ -1,54 +1,62 @@
-import mongoose from "mongoose";
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db");
 
-const MenuSchema = new mongoose.Schema({
-  name: { 
-    type: String, 
-    required: [true, "Product name is required"],
-    trim: true 
+const Menu = sequelize.define("Menu", {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
   },
-  description: { 
-    type: String,
-    trim: true 
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: "Product name is required" }
+    }
   },
-  price: { 
-    type: Number, 
-    required: [true, "Price is required"],
-    min: [0, "Price cannot be negative"]
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true,
   },
-  category: { 
-    type: String, 
-    required: [true, "Category is required"],
-    enum: ["Starter", "Main Course", "Dessert", "Beverage", "Sides"],
-    default: "Main Course"
+  price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+    validate: {
+      min: { args: [0], msg: "Price cannot be negative" }
+    }
   },
-  image: { 
-    type: String, 
-    default: null // Stores the filename from Multer
+  category: {
+    type: DataTypes.ENUM("Starter", "Main Course", "Dessert", "Beverage", "Sides"),
+    allowNull: false,
+    defaultValue: "Main Course"
   },
-  isAvailable: { 
-    type: Boolean, 
-    default: true 
+  image: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: null
   },
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
+  isAvailable: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true
+  },
+  // --- VIRTUAL FIELD FOR IMAGE URL ---
+  imageUrl: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      const imageFile = this.getDataValue('image');
+      if (!imageFile) return null;
+
+      const backendUrl = process.env.NODE_ENV === 'production' 
+        ? "https://qr-cafeteria.onrender.com" 
+        : "http://localhost:5000";
+
+      return `${backendUrl}/uploads/${imageFile}`;
+    }
   }
 }, {
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+  tableName: "menus",
+  timestamps: true,
 });
 
-// --- VIRTUAL FIELD FOR IMAGE URL ---
-// Dynamically builds the image link depending on whether it's local or live on Render
-MenuSchema.virtual('imageUrl').get(function() {
-  if (!this.image) return null;
-  
-  // Checks if running live on Render, otherwise falls back to local machine
-  const backendUrl = process.env.NODE_ENV === 'production' 
-    ? "https://qr-cafeteria-backend.onrender.com" 
-    : "http://localhost:5000";
-
-  return `${backendUrl}/uploads/${this.image}`;
-});
-
-export default mongoose.model("Menu", MenuSchema);
+module.exports = Menu;
