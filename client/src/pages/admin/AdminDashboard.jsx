@@ -20,13 +20,14 @@ const AdminDashboard = () => {
   // Track toggle drawer navigation layout on small screens
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // --- FIXED DYNAMIC ENVIRONMENT URL ROUTING LAYER ---
-  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com"; 
+  // --- 🚀 CORRECTED SAFE ENVIRONMENT ROUTING ENGINE ---
+  // 🛡️ FIXED: Redirected structural fallbacks away from old repository routes to your primary URL link
+  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com"; 
   
   // Cleanly appends /api without messing up protocols or ports depending on local vs cloud execution
   const API_URL = SERVER_IP.includes("onrender.com") 
     ? `${SERVER_IP}/api` 
-    : `http://localhost:5000/api`;
+    : `${SERVER_IP}/api`;
   
   const prevOrderCount = useRef(0);
   const prevServiceCount = useRef(0);
