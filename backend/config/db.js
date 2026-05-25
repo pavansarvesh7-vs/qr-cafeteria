@@ -1,21 +1,24 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
+// Hard fallback to 'test' if Render configuration fails to pass the string dynamically
+const dbName = process.env.DB_NAME && process.env.DB_NAME !== 'sys' ? process.env.DB_NAME : 'test';
+
 const sequelize = new Sequelize(
-  process.env.DB_NAME || 'test',
+  dbName,
   process.env.DB_USER,
   process.env.DB_PASSWORD,
   {
     host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT) || 4000,
     dialect: 'mysql',
-    logging: false, // Prevents raw SQL queries from cluttering Render's build logs
+    port: parseInt(process.env.DB_PORT) || 4000, 
     dialectOptions: {
       ssl: {
         minVersion: 'TLSv1.2',
-        rejectUnauthorized: true // Essential for TiDB Cloud secure public endpoints
+        rejectUnauthorized: true
       }
     },
+    logging: false,
     pool: {
       max: 5,
       min: 0,
