@@ -3,6 +3,10 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Float, MeshDistortMaterial, Text, ContactShadows, MeshWobbleMaterial } from "@react-three/drei";
 import * as THREE from "three";
 
+// --- 🚀 CORRECTED SAFE ENVIRONMENT ROUTING ENGINE ---
+// Configured to point directly to your operational production engine matrix
+const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com";
+
 // Tracks mouse movement to subtly tilt the 3D dashboard view
 const ResponsiveInteractiveGroup = ({ children }) => {
   const ref = useRef();
@@ -23,8 +27,8 @@ const FloatingMenuCard = ({ products = [], onSelect }) => (
     <mesh position={[-4, 2, 0]} onClick={onSelect}>
       <boxGeometry args={[1.8, 2.8, 0.1]} />
       <MeshDistortMaterial color="#050505" speed={5} distort={0.2} metalness={1} roughness={0} />
-      <Text position={[0, 1, 0.1]} fontSize={0.15} color="#00f0ff">MANAGE MENU</Text>
-      <Text position={[0, 0, 0.1]} fontSize={0.12} color="white">ITEMS: {products.length}</Text>
+      <Text position={[0, 1, 0.1]} fontSize={0.15} color="#00f0ff" fontFamily="'Share Tech Mono', monospace">MANAGE MENU</Text>
+      <Text position={[0, 0, 0.1]} fontSize={0.12} color="white" fontFamily="'Share Tech Mono', monospace">ITEMS: {products.length}</Text>
     </mesh>
   </Float>
 );
@@ -35,7 +39,7 @@ const RevenueDisplaySphere = ({ stats }) => (
     <mesh position={[0, 0, 0]}>
       <sphereGeometry args={[1.3, 64, 64]} />
       <MeshWobbleMaterial color="#080808" factor={1} speed={2} emissive="#39ff14" emissiveIntensity={0.5} />
-      <Text position={[0, 2, 0]} fontSize={0.25} color="#39ff14">₹{stats.revenue.toLocaleString()}</Text>
+      <Text position={[0, 2, 0]} fontSize={0.25} color="#39ff14" fontFamily="'Share Tech Mono', monospace">₹{stats.revenue.toLocaleString()}</Text>
     </mesh>
   </Float>
 );
@@ -46,7 +50,7 @@ const TableStatusIndicator = ({ tableId, hasAlert }) => (
     <mesh position={[4, (tableId * 1.5) - 3, 0]}>
       <octahedronGeometry args={[0.5, 0]} />
       <meshStandardMaterial color={hasAlert ? "#ff0055" : "#00ff66"} emissive={hasAlert ? "#ff0055" : "#00ff66"} emissiveIntensity={1} />
-      <Text position={[0, 0.8, 0]} fontSize={0.2} color="white">Table {tableId}</Text>
+      <Text position={[0, 0.8, 0]} fontSize={0.2} color="white" fontFamily="'Share Tech Mono', monospace">Table {tableId}</Text>
     </mesh>
   </Float>
 );

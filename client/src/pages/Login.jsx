@@ -8,7 +8,8 @@ function Login() {
   const [loadingProgress, setLoadingProgress] = useState(0); 
   const navigate = useNavigate();
   
-  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com";
+  // 📡 FIXED: Set default fallback to your real backend domain
+  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com";
   const API_BASE = `${SERVER_IP}/api/auth`;
   const selectedRole = localStorage.getItem("userRoleChoice") || "user";
   const themeAccent = selectedRole === "admin" ? "#ff3d00" : "#ff6b35"; 
@@ -29,7 +30,6 @@ function Login() {
     setLoading(true);
 
     try {
-      // 📡 FIXED: Swapped out broken 'API_URL' reference for the correct endpoint route
       const res = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

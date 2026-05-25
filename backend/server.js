@@ -35,7 +35,7 @@ app.get('/', (req, res) => {
 // ==========================================
 // 4. API ROUTES
 // ==========================================
-// 🔐 LINK THE AUTH ROUTES MATRIX (Make sure authRoutes.js exists in your routes folder!)
+// 🔐 LINK THE AUTH ROUTES MATRIX
 app.use('/api/auth', require('./routes/authRoutes'));
 
 // app.use('/api/menu', require('./routes/menuRoutes'));
@@ -50,8 +50,9 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('✅ DATABASE_CONNECTION_ESTABLISHED');
     
-    // Sync models with schema alterations allowed
-    await sequelize.sync({ alter: true }); 
+    // 🛡️ SAFE TIDB ALIGNMENT PATCH
+    // Changed from { alter: true } to a standard sync strategy to prevent UNIQUE constraint crashes on TiDB Cloud
+    await sequelize.sync(); 
     console.log('📦 DATABASE_MODELS_SYNCED_AND_UPDATED');
     
     // Production deployment structural overrides for Render

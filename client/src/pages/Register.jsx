@@ -8,7 +8,8 @@ function Register() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com";
+  // 📡 FIXED: Set default fallback to your real backend domain
+  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com";
   const API_BASE = `${SERVER_IP}/api/auth`;
   const selectedRole = localStorage.getItem("userRoleChoice") || "user";
   const themeAccent = selectedRole === "admin" ? "#ff3d00" : "#03dac6"; 
@@ -19,7 +20,6 @@ function Register() {
     setLoading(true);
 
     try {
-      // 🚀 FIXED: Pointing directly to the real auth endpoint mapping matrix
       const res = await fetch(`${API_BASE}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
