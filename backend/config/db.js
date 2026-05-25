@@ -1,24 +1,22 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-// Hard fallback to 'test' if Render configuration fails to pass the string dynamically
-const dbName = process.env.DB_NAME && process.env.DB_NAME !== 'sys' ? process.env.DB_NAME : 'test';
-
+// 🛠️ HARD-OVERRIDE CONNECTION SCHEME (Bypasses Render Environment Variable Cache Errors)
 const sequelize = new Sequelize(
-  dbName,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
+  'test',                          // DB Name: Enforces the read/write 'test' schema
+  '31ywwu39RmuPMuA.root',          // DB User: From your TiDB panel screenshot
+  'oQdE1X7Gix3OBKcr',              // DB Password: From your TiDB panel screenshot
   {
-    host: process.env.DB_HOST,
+    host: 'gateway01.ap-southeast-1.prod.aws.tidbcloud.com', // Explicit regional host
     dialect: 'mysql',
-    port: parseInt(process.env.DB_PORT) || 4000, 
+    port: 4000, 
     dialectOptions: {
       ssl: {
         minVersion: 'TLSv1.2',
-        rejectUnauthorized: true
+        rejectUnauthorized: true   // Mandatory secure SSL flag for TiDB Cloud
       }
     },
-    logging: false,
+    logging: false, // Prevents raw terminal log cluttering
     pool: {
       max: 5,
       min: 0,
