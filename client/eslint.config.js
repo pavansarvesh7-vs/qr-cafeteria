@@ -15,7 +15,11 @@ export default defineConfig([
     ],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        // 🛠️ FIX: Instructs ESLint that import.meta belongs to a modern environment
+        import: 'readonly' 
+      },
       parserOptions: {
         ecmaVersion: 'latest',
         ecmaFeatures: { jsx: true },
@@ -23,7 +27,12 @@ export default defineConfig([
       },
     },
     rules: {
+      // 🛠️ ADJUSTED: Standardizes unused variables but skips system warnings for variables starting with capitalized letters
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
     },
   },
 ])
