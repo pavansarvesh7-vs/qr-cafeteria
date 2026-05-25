@@ -13,7 +13,7 @@ const app = express();
 // ==========================================
 // 2. MIDDLEWARE CONFIGURATION
 // ==========================================
-// 🛡️ Permissive CORS rule to handle the frontend cross-domain preflight handshakes
+// 🛡️ Permissive CORS rule to handle frontend cross-domain preflight handshakes
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -33,29 +33,42 @@ app.get('/', (req, res) => {
 });
 
 // ==========================================
-// 4. API ROUTES
+// 4. API ROUTES (Explicit Naming Configuration)
 // ==========================================
-// 🔐 LINK THE AUTH ROUTES MATRIX
+// 🔐 AUTHENTICATION MATRIX
 app.use('/api/auth', require('./routes/authRoutes'));
 
-// app.use('/api/menu', require('./routes/menuRoutes'));
-// app.use('/api/orders', require('./routes/orderRoutes'));
+// 🍔 MENU MANAGEMENT PIPELINE
+// Maps to: routes/menu.js
+app.use('/api/menu', require('./routes/menu'));
+
+// 🛒 CUSTOMER ORDER INTAKE ENGINE
+// Maps to: routes/orderRoutes.js
+app.use('/api/orders', require('./routes/orderRoutes'));
+
+// 🚨 LIVE TABLE ASSISTANCE QUEUE
+// Maps to: routes/serviceRoutes.js
+app.use('/api/service', require('./routes/serviceRoutes'));
+
+// 📦 PRODUCT METADATA ROUTER (Matches extra project controller file)
+// Maps to: routes/productRoutes.js
+app.use('/api/products', require('./routes/productRoutes'));
 
 // ==========================================
 // 5. SERVER INITIALIZATION
 // ==========================================
 const startServer = async () => {
   try {
-    // Authenticate database connection
+    // Authenticate database connectivity parameters
     await sequelize.authenticate();
     console.log('✅ DATABASE_CONNECTION_ESTABLISHED');
     
     // 🛡️ SAFE TIDB ALIGNMENT PATCH
-    // Changed from { alter: true } to a standard sync strategy to prevent UNIQUE constraint crashes on TiDB Cloud
+    // Using standard sync() instead of { alter: true } to prevent UNIQUE constraint crashes on TiDB Cloud
     await sequelize.sync(); 
     console.log('📦 DATABASE_MODELS_SYNCED_AND_UPDATED');
     
-    // Production deployment structural overrides for Render
+    // Production deployment structural network overrides for Render hosting
     const PORT = process.env.PORT || 5000; 
     const HOST = '0.0.0.0'; 
 
