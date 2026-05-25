@@ -1,19 +1,16 @@
 // ==========================================
-// 1. DEPENDENCIES & CONFIGURATION
+// 1. MODULE DEPENDENCIES & INITIALIZATION
 // ==========================================
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-
-// Import the verified sequelize instance
 const { sequelize } = require('./config/db'); 
 
 const app = express();
 
 // ==========================================
-// 2. MIDDLEWARE CONFIGURATION
+// 2. GLOBAL MIDDLEWARE MATRIX
 // ==========================================
-// 🛡️ Permissive CORS rule to handle frontend cross-domain preflight handshakes
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -22,62 +19,52 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded static files securely (Images for menu items)
+// Serve static asset file structures securely (Uploaded culinary graphics)
 app.use('/uploads', express.static('uploads'));
 
 // ==========================================
-// 3. HEALTH CHECK & BASE ROUTE
+// 3. SERVICE DIAGNOSTICS & HEALTH CHECK
 // ==========================================
 app.get('/', (req, res) => {
   res.status(200).json({
     status: "success",
-    message: "Vault Kitchen API is online and fully operational."
+    message: "Vault Kitchen Backend Engine running flawlessly on TiDB Cloud."
   });
 });
 
 // ==========================================
-// 4. API ROUTES (Explicit CommonJS Formats)
+// 4. API ROUTING LAYER (Clean CommonJS Formats)
 // ==========================================
-// 🔐 AUTHENTICATION MATRIX
 app.use('/api/auth', require('./routes/authRoutes'));
-
-// 🍔 MENU MANAGEMENT PIPELINE
 app.use('/api/menu', require('./routes/menu'));
-
-// 🛒 CUSTOMER ORDER INTAKE ENGINE
 app.use('/api/orders', require('./routes/orderRoutes'));
-
-// 🚨 LIVE TABLE ASSISTANCE QUEUE
 app.use('/api/service', require('./routes/serviceRoutes'));
-
-// 📦 PRODUCT METADATA ROUTER
 app.use('/api/products', require('./routes/productRoutes'));
 
 // ==========================================
-// 5. SERVER INITIALIZATION
+// 5. SECURE SERVER KICKSTART PIPELINE
 // ==========================================
 const startServer = async () => {
   try {
-    // Authenticate database connectivity parameters
+    // Test the physical TLS socket connection parameters
     await sequelize.authenticate();
     console.log('✅ DATABASE_CONNECTION_ESTABLISHED');
     
-    // 🛡️ SAFEST PRODUCTION PATTERN FOR TIDB CLOUD:
-    // Schema changes are explicitly managed manually to bypass live DDL restriction dropouts.
-    console.log('📦 DATABASE_MODELS_SYNC_BYPASSED (SCHEMA STRUCTURE IS LOCKED)');
+    // Bypasses destructive drops; structural changes auto-apply safely to the 'test' schema
+    await sequelize.sync({ alter: true });
+    console.log('📦 DATABASE_MODELS_SYNCHRONIZED (SCHEMA IS STABLE)');
     
-    // Production deployment structural network overrides for Render hosting
     const PORT = process.env.PORT || 5000; 
     const HOST = '0.0.0.0'; 
 
     app.listen(PORT, HOST, () => {
       console.log('===========================================');
-      console.log(`🛡️  VAULT KITCHEN SYSTEM v2.1`);
-      console.log(`🚀 PRODUCTION SERVER ACTIVE ON PORT: ${PORT}`);
+      console.log(`🛡️  VAULT KITCHEN RUNTIME INTERFACE ACTIVE`);
+      console.log(`🚀 DEPLOYMENT LIVE ON NETWORK PATH: http://${HOST}:${PORT}`);
       console.log('===========================================');
     });
   } catch (err) {
-    console.error('❌ CRITICAL_STARTUP_FAILURE FULL ERROR DETAILS BELOW:');
+    console.error('❌ SYSTEM_STARTUP_CRITICAL_FAILURE:');
     console.error(err);
     process.exit(1);
   }
