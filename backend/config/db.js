@@ -1,22 +1,21 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-// 🛠️ HARD-OVERRIDE CONNECTION SCHEME (Bypasses Render Environment Variable Cache Errors)
 const sequelize = new Sequelize(
-  'test',                          // DB Name: Enforces the read/write 'test' schema
-  '31ywwu39RmuPMuA.root',          // DB User: From your TiDB panel screenshot
-  'oQdE1X7Gix3OBKcr',              // DB Password: From your TiDB panel screenshot
+  'vault_kitchen',                 // DB Name: The newly created and authorized schema
+  '31ywwu39RmuPMuA.root',          // DB User
+  'oQdE1X7Gix3OBKcr',              // DB Password
   {
-    host: 'gateway01.ap-southeast-1.prod.aws.tidbcloud.com', // Explicit regional host
+    host: 'gateway01.ap-southeast-1.prod.aws.tidbcloud.com', 
     dialect: 'mysql',
     port: 4000, 
     dialectOptions: {
       ssl: {
         minVersion: 'TLSv1.2',
-        rejectUnauthorized: true   // Mandatory secure SSL flag for TiDB Cloud
+        rejectUnauthorized: true   // Enforces the mandatory secure TLS socket layer
       }
     },
-    logging: false, // Prevents raw terminal log cluttering
+    logging: false,                // Keeps your Render runtime console logs clean
     pool: {
       max: 5,
       min: 0,
