@@ -34,17 +34,21 @@ const MenuSchema = new mongoose.Schema({
     default: Date.now 
   }
 }, {
-  // This allows us to see virtual fields when we convert to JSON
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
 
 // --- VIRTUAL FIELD FOR IMAGE URL ---
-// This automatically prepends the server IP so the frontend doesn't have to
+// Dynamically builds the image link depending on whether it's local or live on Render
 MenuSchema.virtual('imageUrl').get(function() {
   if (!this.image) return null;
-  const SERVER_IP = "172.20.10.4"; // Your Laptop's IP
-  return `http://${SERVER_IP}:5000/uploads/${this.image}`;
+  
+  // Checks if running live on Render, otherwise falls back to local machine
+  const backendUrl = process.env.NODE_ENV === 'production' 
+    ? "https://qr-cafeteria-backend.onrender.com" 
+    : "http://localhost:5000";
+
+  return `${backendUrl}/uploads/${this.image}`;
 });
 
 export default mongoose.model("Menu", MenuSchema);

@@ -31,8 +31,13 @@ function Cart() {
 
   const queryParams = new URLSearchParams(useLocation().search);
   const tableId = queryParams.get("table") || "01";
-  const SERVER_IP = "172.20.10.4"; 
-  const API_BASE = `http://${SERVER_IP}:5000/api/orders`;
+
+  // --- FIXED DYNAMIC ENVIRONMENT URL ROUTING LAYER ---
+  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com"; 
+  
+  const API_BASE = SERVER_IP.includes("onrender.com")
+    ? `${SERVER_IP}/api/orders`
+    : `http://localhost:5000/api/orders`;
 
   const handleIncreaseQty = (itemId) => {
     if (typeof contextUpdateQuantity === "function") {
@@ -117,8 +122,6 @@ function Cart() {
     setLoading(true);
     
     try {
-      // 🔧 INJECTION FIX: Merges item notes directly into the item_name payload string
-      // This forces formatting tokens to match what your kitchen component's layout expects.
       const itemsString = localCart
         .map(item => {
           const qty = item.quantity || item.qty || 1;
@@ -127,7 +130,6 @@ function Cart() {
         })
         .join(", ");
 
-      // Generates the master instruction log string summary for your high-visibility dashboard panel
       const aggregatedNotes = localCart
         .filter(item => item.note && item.note.trim() !== "")
         .map(item => `${item.name}: "${item.note.trim()}"`)
@@ -245,7 +247,6 @@ function Cart() {
             </div>
           ) : (
             <>
-              {/* Left Item Stream Column */}
               <section style={styles.itemStreamSection}>
                 <div style={{ marginBottom: '5px' }}>
                   <button 
@@ -301,7 +302,6 @@ function Cart() {
                 </div>
               </section>
 
-              {/* Right Billing Ledger Computations Block */}
               <section style={styles.ledgerSummarySection}>
                 <div style={styles.sectionHeader}>
                   <span style={styles.bracketTitle}>[ TRANSACTION_LEDGER ]</span>

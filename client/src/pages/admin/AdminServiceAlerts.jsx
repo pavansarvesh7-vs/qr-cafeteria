@@ -5,8 +5,12 @@ function AdminServiceAlerts() {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const SERVER_IP = "172.20.10.4"; 
-  const API_BASE = `http://${SERVER_IP}:5000/api/service`;
+  // --- FIXED DYNAMIC ENVIRONMENT URL ROUTING LAYER ---
+  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com"; 
+  
+  const API_BASE = SERVER_IP.includes("onrender.com")
+    ? `${SERVER_IP}/api/service`
+    : `http://localhost:5000/api/service`;
 
   const fetchActiveAlerts = async () => {
     try {
@@ -60,7 +64,7 @@ function AdminServiceAlerts() {
       ) : (
         <div style={styles.listStack}>
           {alerts.map((alertItem) => (
-            <div key={alertItem.id} style={{ ...styles.alertCard, flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? "15px" : "30px" }}>
+            <div key={alertItem.id || alertItem._id} style={{ ...styles.alertCard, flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? "15px" : "30px" }}>
               <div style={styles.metaSide}>
                 <span style={styles.tableTag}>Table {alertItem.table_id}</span>
                 <span style={styles.timeTag}>
@@ -72,7 +76,7 @@ function AdminServiceAlerts() {
                 <div style={styles.requestType}>
                   Service Needed: <span style={styles.typeHighlight}>{alertItem.request_type}</span>
                 </div>
-                <button style={{ ...styles.resolveBtn, width: isMobile ? "100%" : "auto", padding: isMobile ? "12px" : "10px 18px" }} onClick={() => handleResolve(alertItem.id)}>
+                <button style={{ ...styles.resolveBtn, width: isMobile ? "100%" : "auto", padding: isMobile ? "12px" : "10px 18px" }} onClick={() => handleResolve(alertItem.id || alertItem._id)}>
                   Mark as Handled
                 </button>
               </div>

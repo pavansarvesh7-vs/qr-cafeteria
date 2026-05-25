@@ -20,8 +20,13 @@ const AdminDashboard = () => {
   // Track toggle drawer navigation layout on small screens
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const SERVER_IP = "172.20.10.4"; 
-  const API_URL = `http://${SERVER_IP}:5000/api`;
+  // --- FIXED DYNAMIC ENVIRONMENT URL ROUTING LAYER ---
+  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com"; 
+  
+  // Cleanly appends /api without messing up protocols or ports depending on local vs cloud execution
+  const API_URL = SERVER_IP.includes("onrender.com") 
+    ? `${SERVER_IP}/api` 
+    : `http://localhost:5000/api`;
   
   const prevOrderCount = useRef(0);
   const prevServiceCount = useRef(0);
@@ -121,7 +126,7 @@ const AdminDashboard = () => {
       <main className="main-content">
         {!isServerOnline && (
           <div className="server-disconnect-banner">
-            ⚠️ CONNECTION ERROR: Unable to reach the restaurant system server at {SERVER_IP}:5000. Please check your network or restart the database service.
+            ⚠️ CONNECTION ERROR: Unable to reach the restaurant system server at {SERVER_IP}. Please check your network or restart the database service.
           </div>
         )}
 
@@ -130,7 +135,7 @@ const AdminDashboard = () => {
             <header className="content-header layout-split">
               <div>
                 <h2>RESTAURANT OVERVIEW</h2>
-                <p className="ip-display">Local Server Connection Address: {SERVER_IP}</p>
+                <p className="ip-display">Server Connection Address: {SERVER_IP}</p>
               </div>
               
               <div className={`surge-control-deck ${surgeActive ? "active" : ""}`}>

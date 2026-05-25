@@ -8,9 +8,8 @@ function Register() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const SERVER_IP = "172.20.10.4"; 
-  const API_URL = `http://${SERVER_IP}:5000/api/auth/register`;
-
+const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com";
+const API_BASE = `${SERVER_IP}/api/auth`;
   const selectedRole = localStorage.getItem("userRoleChoice") || "user";
   const themeAccent = selectedRole === "admin" ? "#ff3d00" : "#03dac6"; 
   const themeGlow = selectedRole === "admin" ? "rgba(255,61,0,0.12)" : "rgba(3,218,198,0.12)";
