@@ -8,8 +8,8 @@ function Login() {
   const [loadingProgress, setLoadingProgress] = useState(0); 
   const navigate = useNavigate();
   
-const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com";
-const API_BASE = `${SERVER_IP}/api/auth`;
+  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com";
+  const API_BASE = `${SERVER_IP}/api/auth`;
   const selectedRole = localStorage.getItem("userRoleChoice") || "user";
   const themeAccent = selectedRole === "admin" ? "#ff3d00" : "#ff6b35"; 
   const themeGlow = selectedRole === "admin" ? "rgba(255,61,0,0.12)" : "rgba(255,107,53,0.12)";
@@ -29,7 +29,8 @@ const API_BASE = `${SERVER_IP}/api/auth`;
     setLoading(true);
 
     try {
-      const res = await fetch(API_URL, {
+      // 📡 FIXED: Swapped out broken 'API_URL' reference for the correct endpoint route
+      const res = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.toLowerCase().trim(), password }),
@@ -130,7 +131,7 @@ const styles = {
     width: "100vw", 
     display: "flex", 
     alignItems: "center", 
-    justifyContent: "center", /* Fixed from layout bug: duplicate 'justify' replaced with standard property */
+    justifyContent: "center",
     backgroundColor: "#050608", 
     color: "#fff", 
     fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
