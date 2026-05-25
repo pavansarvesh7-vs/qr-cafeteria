@@ -50,8 +50,9 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('✅ DATABASE_CONNECTION_ESTABLISHED');
     
-    // Auto-creates missing tables securely within your 'test' schema space
-    await sequelize.sync({ alter: true });
+    // 🛠️ FIXED: Removed { alter: true } to prevent TiDB Serverless constraint conflicts.
+    // This safely initializes tables if missing, without altering existing unique indexes.
+    await sequelize.sync();
     console.log('📦 DATABASE_MODELS_SYNCHRONIZED (SCHEMA IS STABLE)');
     
     const PORT = process.env.PORT || 5000; 
