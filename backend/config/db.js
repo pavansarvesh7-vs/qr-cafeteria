@@ -2,9 +2,9 @@ const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
 const sequelize = new Sequelize(
-  'vault_kitchen',                 // DB Name: Your manually created database schema
-  '31ywwu39RmuPMuA.root',          // DB User
-  'fxTDL3Y8nO8U26A1',              // ⚡ FIXED: Your new active password from the TiDB panel
+  'test',                          // 🔥 UPDATED: Back to the verified 'test' database layout
+  '31ywwu39RmuPMuA.root',          // Your active DB User
+  'fxTDL3Y8nO8U26A1',              // Your working updated password
   {
     host: 'gateway01.ap-southeast-1.prod.aws.tidbcloud.com', 
     dialect: 'mysql',
@@ -12,7 +12,7 @@ const sequelize = new Sequelize(
     dialectOptions: {
       ssl: {
         minVersion: 'TLSv1.2',
-        rejectUnauthorized: true   // Mandated secure TLS verification layer
+        rejectUnauthorized: true   // Enforces secure TLS routing
       }
     },
     logging: false,
