@@ -59,10 +59,23 @@ export default function UserHome() {
           return res.json();
         })
         .then((data) => {
-          const formatted = data.map((item) => ({
-            ...item,
-            image: item.image.startsWith("http") ? item.image : `${API_BASE}/uploads/${item.image}`,
-          }));
+          // SAFE SANITIZATION FILTER: Checks for missing fields and intercepts null image values cleanly
+          const formatted = data.map((item) => {
+            let sanitizedImage = null;
+            if (item.image && typeof item.image === "string" && item.image.trim() !== "") {
+              sanitizedImage = item.image.startsWith("http") 
+                ? item.image 
+                : `${API_BASE}/uploads/${item.image}`;
+            }
+
+            return {
+              ...item,
+              name: item.item_name || item.name || "UNNAMED_PROTOTYPE_ITEM",
+              price: item.totalAmount || item.price || 0,
+              image: sanitizedImage,
+              description: item.description || "No description provided."
+            };
+          });
           
           setProducts(formatted);
           setError(null);
@@ -178,7 +191,8 @@ export default function UserHome() {
             ) : (
               activeProduct && (
                 <div style={styles.showcaseCenterStack}>
-                  <MenuCard products={[activeProduct]} addToCart={addToCart} />
+                  {/* FIXED COMPONENT PROPS SIGNATURE: Feeds the pure single object structure directly */}
+                  <MenuCard product={activeProduct} addToCart={addToCart} />
 
                   <div style={styles.hudDeckPanel}>
                     <div style={styles.hudHeaderLine}>[ INTERFACE_TELEMETRY ]</div>
@@ -261,7 +275,6 @@ export default function UserHome() {
   );
 }
 
-// Styles array object tracking stays consistent below...
 const styles = {
   appViewport: { backgroundColor: "#020305", minHeight: "100vh", width: "100vw", position: "relative", overflowX: "hidden" },
   contentSuperstructure: { position: "relative", zIndex: 10, minHeight: "100vh", width: "100%", display: "flex", flexDirection: "column" },
