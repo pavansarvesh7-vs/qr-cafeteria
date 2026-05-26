@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Html5QrcodeScanner } from "html5-qrcode";
 import { CartContext } from "../../context/CartContext";
 import MenuCard from "./MenuCard";
 import GridBackground from "./GridBackground";
@@ -15,6 +16,9 @@ export default function UserHome() {
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [isInitializingScan, setIsInitializingScan] = useState(false);
   const [isRadarHovered, setIsRadarHovered] = useState(false);
+  
+  // QR Camera Terminal State Engine
+  const [isScanningCamera, setIsScanningCamera] = useState(false);
 
   const API_BASE = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com";
 
@@ -42,6 +46,59 @@ export default function UserHome() {
     }
   }, [navigate, queryParams]);
 
+  // Integrated Camera Instance lifecycle loop
+  useEffect(() => {
+    let scannerInstance = null;
+
+    if (isScanningCamera) {
+      // Small timeout ensures the DOM node container exists before initializing
+      const setupTimer = setTimeout(() => {
+        scannerInstance = new Html5QrcodeScanner(
+          "qr-reader-container",
+          { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 },
+            rememberLastUsedCamera: true
+          },
+          /* verbose= */ false
+        );
+
+        scannerInstance.render(
+          (decodedText) => {
+            // EXPECTS QR TEXT LIKE: "https://yourdomain.com/user-home?table=04" or plain JSON / numbers
+            try {
+              let parsedTable = decodedText;
+              if (decodedText.includes("table=")) {
+                const urlObj = new URL(decodedText);
+                parsedTable = urlObj.searchParams.get("table") || "01";
+              }
+              
+              // Apply extracted node configuration states to local engine blocks
+              localStorage.setItem("assigned_vault_table", parsedTable);
+              scannerInstance.clear().then(() => {
+                setIsScanningCamera(false);
+                // Relocate layout focus to the target node cleanly
+                window.location.href = `/user-home?table=${parsedTable}&scan=true`;
+              });
+            } catch (err) {
+              console.error("Matrix compilation error mapping code contents:", err);
+            }
+          },
+          (errorMessage) => {
+            // Non-critical diagnostic streaming outputs are suppressed to avoid log pollution
+          }
+        );
+      }, 100);
+
+      return () => {
+        clearTimeout(setupTimer);
+        if (scannerInstance) {
+          scannerInstance.clear().catch((err) => console.error("Scanner exit fault:", err));
+        }
+      };
+    }
+  }, [isScanningCamera]);
+
   // Sync Active Session Cache
   useEffect(() => {
     const cachedId = localStorage.getItem("latest_vault_order_id");
@@ -59,7 +116,6 @@ export default function UserHome() {
           return res.json();
         })
         .then((data) => {
-          // SAFE SANITIZATION FILTER: Checks for missing fields and intercepts null image values cleanly
           const formatted = data.map((item) => {
             let sanitizedImage = null;
             if (item.image && typeof item.image === "string" && item.image.trim() !== "") {
@@ -80,7 +136,6 @@ export default function UserHome() {
           setProducts(formatted);
           setError(null);
 
-          // Gracefully retain selection focus without aggressive snapping
           setActiveProduct((prevActive) => {
             if (!formatted.length) return null;
             if (!prevActive) return formatted[0];
@@ -138,12 +193,40 @@ export default function UserHome() {
     <div style={styles.appViewport}>
       <GridBackground />
 
+      {/* COMPONENT VIEWPORT OVERLAY LAYER: Appends camera capture deck on state toggle */}
+      {isScanningCamera && (
+        <div style={styles.cameraLightBoxOverlay}>
+          <div style={styles.scannerInterfacePanel}>
+            <div style={styles.scannerHeaderRow}>
+              <div style={styles.scannerCardTitle}>⚡ HARDWARE_CAMERA_LINK</div>
+              <button 
+                type="button" 
+                onClick={() => setIsScanningCamera(false)} 
+                style={styles.closeScannerBtn}
+              >
+                [ TERMINATE_LINK ]
+              </button>
+            </div>
+            <p style={styles.scannerInstructionText}>Align target Table Node QR Code within the interface reticle tracking lines below:</p>
+            <div id="qr-reader-container" style={styles.nativeCameraHole}></div>
+          </div>
+        </div>
+      )}
+
       <div style={styles.contentSuperstructure}>
         <header style={styles.globalHeader}>
           <h1 style={styles.brandTitle}>
             VAULT <span style={styles.glowText}>// DIGITAL_MENU</span>
           </h1>
           <div style={styles.badgeContainer}>
+            {/* MANUAL OVERRIDE INTERACTION SYSTEM LINK */}
+            <button 
+              type="button" 
+              onClick={() => setIsScanningCamera(true)} 
+              style={styles.headerScanTrigger}
+            >
+              📷 SYNC_NODE_SCANNER
+            </button>
             <span style={styles.terminalBlink}>●</span>
             <span style={styles.tableBadge}>NODE_TABLE_{tableId}</span>
           </div>
@@ -191,7 +274,6 @@ export default function UserHome() {
             ) : (
               activeProduct && (
                 <div style={styles.showcaseCenterStack}>
-                  {/* FIXED COMPONENT PROPS SIGNATURE: Feeds the pure single object structure directly */}
                   <MenuCard product={activeProduct} addToCart={addToCart} />
 
                   <div style={styles.hudDeckPanel}>
@@ -270,6 +352,25 @@ export default function UserHome() {
           0% { left: -60px; }
           100% { left: 180px; }
         }
+        /* Native library rendering style alignments */
+        #qr-reader-container button {
+          background: #00ff41 !important;
+          color: #000 !important;
+          border: none !important;
+          padding: 8px 14px !important;
+          font-family: 'Share Tech Mono', monospace !important;
+          font-weight: bold !important;
+          border-radius: 4px !important;
+          cursor: pointer !important;
+          margin-top: 10px !important;
+        }
+        #qr-reader-container select {
+          background: #111313 !important;
+          color: #00ff41 !important;
+          border: 1px solid rgba(0, 255, 65, 0.4) !important;
+          padding: 6px !important;
+          font-family: 'Share Tech Mono', monospace !important;
+        }
       `}</style>
     </div>
   );
@@ -281,7 +382,8 @@ const styles = {
   globalHeader: { padding: "20px 30px", background: "rgba(5, 6, 8, 0.75)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(0, 255, 65, 0.15)", display: "flex", justifyContent: "space-between", alignItems: "center", fontFamily: "'Share Tech Mono', monospace" },
   brandTitle: { margin: 0, fontSize: "1.25rem", fontWeight: "900", letterSpacing: "2px", color: "#64748b" },
   glowText: { color: "#00ff41", textShadow: "0 0 10px rgba(0, 255, 65, 0.3)" },
-  badgeContainer: { display: "flex", alignItems: "center", gap: "10px" },
+  badgeContainer: { display: "flex", alignItems: "center", gap: "14px" },
+  headerScanTrigger: { background: "rgba(0, 255, 65, 0.08)", color: "#00ff41", border: "1px solid rgba(0, 255, 65, 0.4)", padding: "6px 12px", borderRadius: "6px", fontFamily: "'Share Tech Mono', monospace", fontSize: "11px", fontWeight: "bold", cursor: "pointer", transition: "all 0.2s" },
   terminalBlink: { color: "#00ff41", fontSize: "10px", animation: "cyberPulse 1.5s infinite" },
   tableBadge: { color: "#00ff41", fontSize: "12px", fontWeight: "700", letterSpacing: "1px" },
   layoutMain: { flex: 1, width: "100%", maxWidth: "1150px", margin: "0 auto", padding: "40px 24px 120px 24px", display: "flex", justifyContent: "center", alignItems: "flex-start", gap: "50px", boxSizing: "border-box" },
@@ -316,5 +418,14 @@ const styles = {
   glitchText: { color: "#00ff41", fontSize: "20px", letterSpacing: "3px", marginBottom: "8px", fontWeight: "bold" },
   tableNodeBadge: { color: "#64748b", fontSize: "12px", letterSpacing: "1px", marginBottom: "20px" },
   progressBarTrack: { width: "180px", height: "2px", background: "rgba(0, 255, 65, 0.15)", position: "relative", overflow: "hidden" },
-  progressBarFill: { position: "absolute", width: "60px", height: "100%", background: "#00ff41", animation: "scanProgress 1.2s infinite ease-in-out" }
+  progressBarFill: { position: "absolute", width: "60px", height: "100%", background: "#00ff41", animation: "scanProgress 1.2s infinite ease-in-out" },
+  
+  // Custom HUD styles for the QR Viewport
+  cameraLightBoxOverlay: { position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "rgba(2, 3, 5, 0.95)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 11000, padding: "20px", boxSizing: "border-box" },
+  scannerInterfacePanel: { width: "100%", maxWidth: "500px", background: "#0b0d13", border: "2px solid #00ff41", borderRadius: "16px", padding: "24px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: "16px", fontFamily: "'Share Tech Mono', monospace" },
+  scannerHeaderRow: { display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(0, 255, 65, 0.2)", paddingBottom: "12px" },
+  scannerCardTitle: { color: "#fff", fontWeight: "bold", fontSize: "14px", letterSpacing: "1px" },
+  closeScannerBtn: { background: "none", border: "none", color: "#ff3b30", fontSize: "12px", fontWeight: "bold", cursor: "pointer" },
+  scannerInstructionText: { margin: 0, fontSize: "13px", color: "#8fa0bc", lineHeight: "1.5" },
+  nativeCameraHole: { width: "100%", borderRadius: "8px", overflow: "hidden", border: "1px solid rgba(0, 255, 65, 0.15)", color: "#fff" }
 };
