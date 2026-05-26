@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: qr-cafeteria-frontend
+    env: static
+    routes:
+      - src: /*
+        dest: /index.html
+        status: rewrite
