@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 
-const TableManager = ({ serverIp }) => {
+const TableManager = () => {
   const [tableCount, setTableCount] = useState(5);
-  const PORT = "5173";
   const SYSTEM_SALT = "VAULT_CRYPT_TRACKER_88B"; // Background security key to protect order validation
+
+  // --- 🎯 CUSTOMER ORDERING PLATFORM TARGET RESOLVER ---
+  // If your live production customer interface link differs, substitute it directly inside the placeholder string!
+  const CUSTOMER_APP_URL = "https://qr-cafeteria-frontend.onrender.com";
 
   const downloadQR = (tableId) => {
     const canvas = document.getElementById(`qr-table-${tableId}`);
@@ -19,13 +22,13 @@ const TableManager = ({ serverIp }) => {
   return (
     <div style={styles.container}>
       <header style={styles.header}>
-        <h1 style={{margin: 0, fontWeight: 900, fontSize: '28px', letterSpacing: '0.5px'}}>
+        <h1 style={{ margin: 0, fontWeight: 900, fontSize: '28px', letterSpacing: '0.5px' }}>
           TABLE QR CODE <span style={{ color: "#ff6b35" }}>GENERATOR</span>
         </h1>
-        <p style={{color: '#94a3b8', fontSize: '13px', marginTop: '6px'}}>Generates secure links to prevent off-site ordering and fake requests.</p>
+        <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '6px' }}>Generates secure links to prevent off-site ordering and fake requests.</p>
         
         <div style={styles.controls}>
-          <label style={{fontWeight: '700', fontSize: '12px', color: '#94a3b8'}}>NUMBER OF ACTIVE TABLES: </label>
+          <label style={{ fontWeight: '700', fontSize: '12px', color: '#94a3b8' }}>NUMBER OF ACTIVE TABLES: </label>
           <input 
             type="number" 
             value={tableCount} 
@@ -39,12 +42,17 @@ const TableManager = ({ serverIp }) => {
         {[...Array(parseInt(tableCount || 0))].map((_, i) => {
           const tableNum = (i + 1).toString().padStart(2, '0');
           
-          // Background system configuration mappings matching user home parameters
-          const tableUrl = `http://${serverIp}:${PORT}/user-home?table=${tableNum}&sig=${SYSTEM_SALT}_ST${tableNum}`;
+          // --- 🔒 ENHANCED ROUTING PROTECTION ENGINE ---
+          // Dynamically branches deployment contexts ensuring safe cross-origin targeting
+          const baseUrl = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+            ? `${window.location.protocol}//${window.location.hostname}:5173` // Default Vite dev link port structure
+            : CUSTOMER_APP_URL.replace(/\/$/, "");
+
+          const tableUrl = `${baseUrl}/user-home?table=${tableNum}&sig=${SYSTEM_SALT}_ST${tableNum}`;
 
           return (
             <div key={tableNum} style={styles.card}>
-              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                 <span style={styles.cardTitle}>Table {tableNum}</span>
                 <span style={styles.secureBadge}>SECURE LINK</span>
               </div>

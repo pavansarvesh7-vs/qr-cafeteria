@@ -16,18 +16,11 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({ revenue: 0, liveOrders: 0, activeTables: 0 });
   const [surgeActive, setSurgeActive] = useState(false);
   const [isServerOnline, setIsServerOnline] = useState(true);
-  
-  // Track toggle drawer navigation layout on small screens
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // --- 🚀 CORRECTED SAFE ENVIRONMENT ROUTING ENGINE ---
-  // 🛡️ FIXED: Redirected structural fallbacks away from old repository routes to your primary URL link
-  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com"; 
-  
-  // Cleanly appends /api without messing up protocols or ports depending on local vs cloud execution
-  const API_URL = SERVER_IP.includes("onrender.com") 
-    ? `${SERVER_IP}/api` 
-    : `${SERVER_IP}/api`;
+  // --- 🚀 SAFE ENVIRONMENT ROUTING ENGINE ---
+  const SERVER_IP = (import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com").replace(/\/$/, ""); 
+  const API_URL = `${SERVER_IP}/api`;
   
   const prevOrderCount = useRef(0);
   const prevServiceCount = useRef(0);
@@ -188,7 +181,7 @@ const AdminDashboard = () => {
           </div>
         )}
         
-        {activeSection === "alerts" && <AdminServiceAlerts />}
+        {activeSection === "alerts" && <AdminServiceAlerts serverIp={SERVER_IP} />}
         {activeSection === "menu" && <ManageProducts serverIp={SERVER_IP} />}
         {activeSection === "orders" && <Orders serverIp={SERVER_IP} />}
         {activeSection === "tables" && <TableManager serverIp={SERVER_IP} />}

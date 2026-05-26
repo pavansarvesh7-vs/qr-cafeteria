@@ -1,16 +1,30 @@
-import React from "react";
+import React, { useState } from "react";
 
-export default function MenuCard({ products, addToCart }) {
-  // Graceful fallback structure if initial rendering array handles are empty
-  const activeProduct = products?.[0] || {
+// Changed props signature to expect a direct 'product' object instead of an artificial array container
+export default function MenuCard({ product, addToCart }) {
+  const [isBtnHovered, setIsBtnHovered] = useState(false);
+  const [isAddedFeedback, setIsAddedFeedback] = useState(false);
+
+  // Fallback defaults handle gracefully if the property is missing entirely
+  const activeProduct = product || {
     name: "idly",
     price: 10,
     image: "",
     description: "Soft, fluffy steamed rice cakes served alongside house signature sambar streams."
   };
 
+  const handleCartAction = () => {
+    if (addToCart) {
+      addToCart(activeProduct);
+      
+      // Provide instant visual micro-interaction feedback to prevent double-tapping
+      setIsAddedFeedback(true);
+      setTimeout(() => setIsAddedFeedback(false), 800);
+    }
+  };
+
   return (
-    <div style={styles.cardContainer}>
+    <article style={styles.cardContainer}>
       {/* Product Interactive Display Frame Panel */}
       <div style={styles.imageFrame}>
         {activeProduct.image ? (
@@ -18,10 +32,11 @@ export default function MenuCard({ products, addToCart }) {
             src={activeProduct.image} 
             alt={activeProduct.name} 
             style={styles.productImg} 
+            loading="lazy"
           />
         ) : (
           <div style={styles.imagePlaceholder}>
-            <span style={styles.placeholderIcon}>🍽️</span>
+            <span style={styles.placeholderIcon} role="img" aria-label="plate icon">🍽️</span>
           </div>
         )}
         
@@ -48,14 +63,22 @@ export default function MenuCard({ products, addToCart }) {
           </div>
           
           <button 
-            onClick={() => addToCart && addToCart(activeProduct)}
-            style={styles.actionBtn}
+            type="button"
+            onClick={handleCartAction}
+            onMouseEnter={() => setIsBtnHovered(true)}
+            onMouseLeave={() => setIsBtnHovered(false)}
+            style={{
+              ...styles.actionBtn,
+              backgroundColor: isAddedFeedback ? "#00ff41" : (isBtnHovered ? "#e2e8f0" : "#fff"),
+              color: isAddedFeedback ? "#000" : "#000",
+              transform: isBtnHovered ? "translateY(-1px)" : "translateY(0)"
+            }}
           >
-            INITIALIZE_ORDER
+            {isAddedFeedback ? "✓ PACKET_DISPATCHED" : "INITIALIZE_ORDER"}
           </button>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -169,8 +192,6 @@ const styles = {
   actionBtn: {
     width: "100%",
     padding: "16px",
-    backgroundColor: "#fff",
-    color: "#000",
     border: "none",
     borderRadius: "10px",
     fontSize: "13px",
@@ -178,6 +199,6 @@ const styles = {
     letterSpacing: "1px",
     cursor: "pointer",
     textAlign: "center",
-    transition: "all 0.15s ease"
+    transition: "all 0.15s ease-in-out"
   }
 };

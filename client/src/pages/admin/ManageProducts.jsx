@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./ManageProducts.css";
 
+// --- 🎯 FIXED INGESTION OF SERVER_IP PROP FROM PARENT COMPONENT ---
 const ManageProducts = ({ serverIp }) => {
   const [products, setProducts] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -9,8 +10,10 @@ const ManageProducts = ({ serverIp }) => {
   const [currentProductId, setCurrentProductId] = useState(null);
   const [newProduct, setNewProduct] = useState({ name: "", price: "", image: null });
 
-  const API_URL = `http://${serverIp}:5000/api/products`;
-  const IMAGE_BASE_URL = `http://${serverIp}:5000/uploads`;
+  // Fallback checks combined with dynamic URL cleanups
+  const BASE_URL = (serverIp || import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com").replace(/\/$/, "");
+  const API_URL = `${BASE_URL}/api/products`;
+  const IMAGE_BASE_URL = `${BASE_URL}/uploads`;
 
   const fetchProducts = async () => {
     try {
@@ -23,7 +26,7 @@ const ManageProducts = ({ serverIp }) => {
 
   useEffect(() => { 
     fetchProducts(); 
-  }, []);
+  }, [API_URL]);
 
   const handleSave = async (e) => {
     e.preventDefault();

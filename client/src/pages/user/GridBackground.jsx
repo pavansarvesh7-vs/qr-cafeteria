@@ -78,10 +78,7 @@ export default function GridBackground() {
             repeating-linear-gradient(to bottom, var(--grid-color), var(--grid-color) 2px, transparent 2px, transparent var(--grid-size));
         }
 
-        /* 🏎️ VELOCITY TUNING LOGIC:
-          Changed from 12s to 90s. 
-          Increase to 120s if you want it even slower, or lower to 60s to speed it up slightly.
-        */
+        /* 🏎️ VELOCITY TUNING LOGIC */
         .bottom-plane .grid-lens::before, .bottom-plane .glow-lens::before {
           animation: flightFloor 90s linear infinite;
         }

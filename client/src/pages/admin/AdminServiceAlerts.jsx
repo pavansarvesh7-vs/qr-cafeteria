@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-function AdminServiceAlerts() {
+function AdminServiceAlerts({ serverIp }) {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // --- FIXED DYNAMIC ENVIRONMENT URL ROUTING LAYER ---
-  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com"; 
-  
-  const API_BASE = SERVER_IP.includes("onrender.com")
-    ? `${SERVER_IP}/api/service`
-    : `http://localhost:5000/api/service`;
+  // --- 🎯 FIXED PROP-DRIVEN ROUTING ---
+  const BASE_URL = (serverIp || import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com").replace(/\/$/, "");
+  const API_BASE = `${BASE_URL}/api/service`;
 
   const fetchActiveAlerts = async () => {
     try {
@@ -27,7 +24,7 @@ function AdminServiceAlerts() {
     fetchActiveAlerts();
     const interval = setInterval(fetchActiveAlerts, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [API_BASE]);
 
   const handleResolve = async (id) => {
     try {
@@ -40,7 +37,6 @@ function AdminServiceAlerts() {
     }
   };
 
-  // Modern hook deployment dynamically tracking layout viewport widths
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);

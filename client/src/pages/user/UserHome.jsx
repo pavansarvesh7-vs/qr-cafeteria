@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 import MenuCard from "./MenuCard";
@@ -12,36 +12,29 @@ export default function UserHome() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 🛰️ PERSISTENT TRACKING CACHE DETECTOR STATE
   const [activeSessionId, setActiveSessionId] = useState(null);
-  
-  // 🔍 QR CAPTURE INITIALIZATION LOADING STATE
   const [isInitializingScan, setIsInitializingScan] = useState(false);
+  const [isRadarHovered, setIsRadarHovered] = useState(false);
 
-  // --- 🚀 CORRECTED SAFE ENVIRONMENT ROUTING ENGINE ---
-  // 🛡️ FIXED: Pointing the fallback directly to your operational production engine matrix
   const API_BASE = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com";
 
-  // Parse table metadata cleanly
-  const queryParams = React.useMemo(() => new URLSearchParams(location.search), [location.search]);
+  // Cache table identity query param
+  const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const tableId = queryParams.get("table") || localStorage.getItem("assigned_vault_table") || "01";
 
-  // 📡 INTEGRATED QR SCAN CAPTURE LIFECYCLE HOOK
+  // QR Scan Lifecycle Management
   useEffect(() => {
     const isScanEvent = queryParams.get("scan") === "true";
     const currentTableParam = queryParams.get("table");
 
     if (currentTableParam) {
-      // Securely allocate current node identity to browser memory cache
       localStorage.setItem("assigned_vault_table", currentTableParam);
     }
 
     if (isScanEvent && currentTableParam) {
-      // Trigger short visual cyberpunk matrix link validation effect
       setIsInitializingScan(true);
       const timer = setTimeout(() => {
         setIsInitializingScan(false);
-        // Clean URL search queries to present a pristine production look
         navigate(`/user-home?table=${currentTableParam}`, { replace: true });
       }, 1500);
 
@@ -49,7 +42,7 @@ export default function UserHome() {
     }
   }, [navigate, queryParams]);
 
-  // Check for active orders
+  // Sync Active Session Cache
   useEffect(() => {
     const cachedId = localStorage.getItem("latest_vault_order_id");
     if (cachedId) {
@@ -57,6 +50,7 @@ export default function UserHome() {
     }
   }, []);
 
+  // Menu Database Data Polling Loop
   useEffect(() => {
     const syncMenuFromDatabase = () => {
       fetch(`${API_BASE}/api/products`)
@@ -73,13 +67,11 @@ export default function UserHome() {
           setProducts(formatted);
           setError(null);
 
-          setActiveProduct((currentlyActive) => {
-            if (!currentlyActive && formatted.length > 0) return formatted[0];
-            if (currentlyActive) {
-              const updatedMatch = formatted.find((p) => p._id === currentlyActive._id);
-              return updatedMatch || formatted[0] || null;
-            }
-            return null;
+          // Gracefully retain selection focus without aggressive snapping
+          setActiveProduct((prevActive) => {
+            if (!formatted.length) return null;
+            if (!prevActive) return formatted[0];
+            return formatted.find((p) => p._id === prevActive._id) || formatted[0];
           });
         })
         .catch((err) => {
@@ -93,31 +85,27 @@ export default function UserHome() {
     return () => clearInterval(backgroundSyncTimer);
   }, [API_BASE]);
 
-  // 🛰️ REAL-TIME SERVICE NOTIFICATION TRANSMITTER HOOK
+  // Service Request Handler
   const handleServiceRequest = async (requestType) => {
     try {
       const response = await fetch(`${API_BASE}/api/orders/service-request`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tableId: tableId,
-          requestType: requestType, 
+          tableId,
+          requestType, 
           timestamp: new Date().toISOString()
         })
       });
 
       if (!response.ok) throw new Error("Network array rejected packet payload.");
-      
-      alert(`🛰️ TRANSMISSION SUCCESSFUL:\nRequest [${requestType.replace("_", " ")}] deployed to central kitchen terminal for Node Table ${tableId}.`);
+      alert(`🛰️ TRANSMISSION SUCCESSFUL:\nRequest [${requestType.replace("_", " ")}] deployed for Table ${tableId}.`);
     } catch (err) {
       console.error("Service request pipeline loss:", err);
       alert("❌ TELEMETRY FAULT: Link connection broken. Please try again.");
     }
   };
 
-  // 📟 INLINE MATRIX INTERACTION LOCKING SCREEN OVERLAY
   if (isInitializingScan) {
     return (
       <div style={styles.scanOverlayContainer}>
@@ -215,15 +203,14 @@ export default function UserHome() {
 
         {activeSessionId && (
           <button 
+            type="button"
             onClick={() => navigate(`/order-status/${activeSessionId}?table=${tableId}`)}
-            style={styles.floatingRadarBtn}
-            onMouseEnter={(e) => {
-              e.target.style.transform = 'scale(1.04)';
-              e.target.style.boxShadow = '0 0 25px rgba(0, 255, 65, 0.6)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = 'scale(1)';
-              e.target.style.boxShadow = '0 0 20px rgba(0, 255, 65, 0.4)';
+            onMouseEnter={() => setIsRadarHovered(true)}
+            onMouseLeave={() => setIsRadarHovered(false)}
+            style={{
+              ...styles.floatingRadarBtn,
+              transform: isRadarHovered ? 'scale(1.04)' : 'scale(1)',
+              boxShadow: isRadarHovered ? '0 0 25px rgba(0, 255, 65, 0.6)' : '0 0 20px rgba(0, 255, 65, 0.4)'
             }}
           >
             🛰️ LIVE_TRACK_ACTIVE_ORDER // STATUS
@@ -232,13 +219,13 @@ export default function UserHome() {
 
         <footer style={styles.dockedFooter}>
           <div style={styles.footerActionRow}>
-            <button onClick={() => handleServiceRequest("CALL_WAITER")} style={styles.footerUtilityBtn}>✋ CALL WAITER</button>
-            <button onClick={() => handleServiceRequest("CLEAN_TABLE")} style={styles.footerUtilityBtn}>🧹 CLEAN TABLE</button>
-            <button onClick={() => handleServiceRequest("BILL_REQUEST")} style={styles.footerUtilityBtn}>🧾 REQUEST BILL</button>
+            <button type="button" onClick={() => handleServiceRequest("CALL_WAITER")} style={styles.footerUtilityBtn}>✋ CALL WAITER</button>
+            <button type="button" onClick={() => handleServiceRequest("CLEAN_TABLE")} style={styles.footerUtilityBtn}>🧹 CLEAN TABLE</button>
+            <button type="button" onClick={() => handleServiceRequest("BILL_REQUEST")} style={styles.footerUtilityBtn}>🧾 REQUEST BILL</button>
           </div>
 
           <div onClick={() => navigate(`/cart?table=${tableId}`)} style={styles.cartCircleAnchor}>
-            <button style={styles.cartCircleBtn}>
+            <button type="button" style={styles.cartCircleBtn}>
               🛒
               {cart?.length > 0 && (
                 <span style={styles.cartCounterBadge}>{cart.length}</span>
@@ -274,6 +261,7 @@ export default function UserHome() {
   );
 }
 
+// Styles array object tracking stays consistent below...
 const styles = {
   appViewport: { backgroundColor: "#020305", minHeight: "100vh", width: "100vw", position: "relative", overflowX: "hidden" },
   contentSuperstructure: { position: "relative", zIndex: 10, minHeight: "100vh", width: "100%", display: "flex", flexDirection: "column" },
@@ -303,15 +291,13 @@ const styles = {
   hudLabel: { color: "#8fa0bc" },
   hudValue: { color: "#fff", fontWeight: "bold" },
   hudValueHighlight: { color: "#00ff41", fontWeight: "bold", textShadow: "0 0 8px rgba(0,255,65,0.4)" },
-  floatingRadarBtn: { position: 'fixed', bottom: '96px', right: '24px', background: 'linear-gradient(135deg, #00ff41 0%, #00b32d 100%)', color: '#000', padding: '14px 22px', borderRadius: '50px', fontWeight: '900', fontSize: '11px', fontFamily: "'Share Tech Mono', monospace", letterSpacing: '1px', border: '1px solid rgba(0, 255, 65, 0.6)', cursor: 'pointer', zIndex: 9999, boxShadow: '0 0 20px rgba(0, 255, 65, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)', transition: 'all 0.2s ease-in-out' },
+  floatingRadarBtn: { position: 'fixed', bottom: '96px', right: '24px', background: 'linear-gradient(135deg, #00ff41 0%, #00b32d 100%)', color: '#000', padding: '14px 22px', borderRadius: '50px', fontWeight: '900', fontSize: '11px', fontFamily: "'Share Tech Mono', monospace", letterSpacing: '1px', border: '1px solid rgba(0, 255, 65, 0.6)', cursor: 'pointer', zIndex: 9999, transition: 'all 0.2s ease-in-out' },
   dockedFooter: { position: "fixed", bottom: 0, left: 0, width: "100%", padding: "16px 30px 24px 30px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "linear-gradient(to top, #020305 80%, transparent)", boxSizing: "border-box", gap: "20px", zIndex: 999 },
   footerActionRow: { display: "flex", gap: "10px", flexWrap: "wrap", flex: 1, maxWidth: "calc(100% - 72px)" },
   footerUtilityBtn: { background: "rgba(11, 13, 19, 0.85)", color: "#fff", border: "1px solid rgba(0, 255, 65, 0.2)", fontFamily: "'Share Tech Mono', monospace", padding: "14px 16px", fontSize: "12px", fontWeight: "bold", borderRadius: "10px", cursor: "pointer", flex: "1 1 auto", textAlign: "center", transition: "all 0.2s ease" },
   cartCircleAnchor: { display: "block" },
   cartCircleBtn: { width: "54px", height: "54px", borderRadius: "50%", background: "#ff6b35", border: "none", fontSize: "20px", cursor: "pointer", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 20px rgba(255, 107, 53, 0.4)" },
   cartCounterBadge: { position: "absolute", top: "-3px", right: "-3px", background: "#fff", color: "#ff6b35", width: "18px", height: "18px", borderRadius: "50%", fontSize: "10px", fontWeight: "900", display: "flex", alignItems: "center", justifyContent: "center" },
-  
-  // 🛰️ NEW STYLES FOR INTEGRATED SCAN LOADER OVERLAY
   scanOverlayContainer: { position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "#020305", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 10000 },
   scanOverlayContent: { display: "flex", flexDirection: "column", alignItems: "center", fontFamily: "'Share Tech Mono', monospace", zIndex: 10001 },
   glitchText: { color: "#00ff41", fontSize: "20px", letterSpacing: "3px", marginBottom: "8px", fontWeight: "bold" },

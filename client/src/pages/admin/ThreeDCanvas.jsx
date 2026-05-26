@@ -3,10 +3,6 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Float, MeshDistortMaterial, Text, ContactShadows, MeshWobbleMaterial } from "@react-three/drei";
 import * as THREE from "three";
 
-// --- 🚀 CORRECTED SAFE ENVIRONMENT ROUTING ENGINE ---
-// Configured to point directly to your operational production engine matrix
-const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com";
-
 // Tracks mouse movement to subtly tilt the 3D dashboard view
 const ResponsiveInteractiveGroup = ({ children }) => {
   const ref = useRef();

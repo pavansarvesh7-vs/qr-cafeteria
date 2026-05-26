@@ -37,9 +37,12 @@ const OrderTimer = ({ startTime }) => {
   );
 };
 
+// --- 🎯 FIXED INGESTION OF SERVER_IP PROP FROM PARENT COMPONENT ---
 function Orders({ serverIp }) {
   const [orders, setOrders] = useState([]);
-  const API_URL = `http://${serverIp}:5000/api/orders`; 
+
+  const BASE_URL = (serverIp || import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com").replace(/\/$/, "");
+  const API_URL = `${BASE_URL}/api/orders`; 
   const lastOrderCount = useRef(0);
 
   useEffect(() => {
@@ -70,21 +73,28 @@ function Orders({ serverIp }) {
     fetchOrders();
     const interval = setInterval(fetchOrders, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [API_URL]);
 
   const verifyPayment = async (id) => {
-    try { await axios.put(`${API_URL}/${id}/verify`); fetchOrders(); } 
-    catch (err) { alert("Could not approve or verify payment. Check system connection."); }
+    try { 
+      await axios.put(`${API_URL}/${id}/verify`); 
+      fetchOrders(); 
+    } catch (err) { 
+      alert("Could not approve or verify payment. Check system connection."); 
+    }
   };
 
   const updateStatus = async (id, status) => {
-    try { await axios.put(`${API_URL}/${id}/status`, { status }); fetchOrders(); } 
-    catch (err) { alert("Failed to update kitchen tracking status."); }
+    try { 
+      await axios.put(`${API_URL}/${id}/status`, { status }); 
+      fetchOrders(); 
+    } catch (err) { 
+      alert("Failed to update kitchen tracking status."); 
+    }
   };
 
   const renderItemWithNotes = (itemName) => {
     if (!itemName) return null;
-    // Strip database server tags cleanly before rendering
     const pureItems = itemName.split('[NOTE:')[0];
     return pureItems.split(", ").map((item, index) => {
       const parts = item.split(/(\(.*?\))/g);
@@ -105,7 +115,7 @@ function Orders({ serverIp }) {
   };
 
   return (
-    <div style={{ background: '#141923', minHeight: '100vh', padding: '10px 0', color: 'white', fontFamily: 'sans-serif' }}>
+    <div style={{ background: '#141923', minHeight: '100vh', padding: '10px 20px', color: 'white', fontFamily: 'sans-serif' }}>
       <style>{`
         @keyframes timer-flash {
           0% { box-shadow: 0 0 5px #ff3d00; border-color: #ff3d00; }
@@ -121,7 +131,7 @@ function Orders({ serverIp }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', display: 'block' }}>Server IP: {serverIp}</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', display: 'block' }}>Production Environment</span>
             <span style={{ fontSize: '10px', fontWeight: 700, color: '#475569' }}>CONNECTION: LIVE</span>
           </div>
           <span style={{ height: '12px', width: '12px', background: '#00e676', borderRadius: '50%', display: 'inline-block', boxShadow: '0 0 10px #00e676' }}></span>
@@ -162,7 +172,6 @@ function Orders({ serverIp }) {
                   {renderItemWithNotes(o.item_name || o.itemsDescription)}
                 </div>
 
-                {/* 📝 HIGH-VISIBILITY ALERT BOX FOR CUSTOM CLIENT INSTRUCTIONS */}
                 {o.instructions && o.instructions.trim() !== "" && (
                   <div style={{ 
                     marginTop: '12px', 

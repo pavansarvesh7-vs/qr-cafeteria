@@ -32,12 +32,9 @@ function Cart() {
   const queryParams = new URLSearchParams(useLocation().search);
   const tableId = queryParams.get("table") || "01";
 
-  // --- FIXED DYNAMIC ENVIRONMENT URL ROUTING LAYER ---
-  const SERVER_IP = import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com"; 
-  
-  const API_BASE = SERVER_IP.includes("onrender.com")
-    ? `${SERVER_IP}/api/orders`
-    : `http://localhost:5000/api/orders`;
+  // --- 🔒 ROBUST ENVIRONMENT API ROUTING LAYER ---
+  const SERVER_IP = (import.meta.env.VITE_API_URL || "https://qr-cafeteria-backend.onrender.com").replace(/\/$/, ""); 
+  const API_BASE = `${SERVER_IP}/api/orders`;
 
   const handleIncreaseQty = (itemId) => {
     if (typeof contextUpdateQuantity === "function") {
