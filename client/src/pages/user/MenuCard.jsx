@@ -5,16 +5,31 @@ export default function MenuCard({ product, addToCart }) {
   const [isBtnHovered, setIsBtnHovered] = useState(false);
   const [isAddedFeedback, setIsAddedFeedback] = useState(false);
 
-  // Fallback defaults handle gracefully if the property is missing entirely
-  const activeProduct = product || {
-    name: "idly",
-    price: 10,
-    image: "",
-    description: "Soft, fluffy steamed rice cakes served alongside house signature sambar streams."
+  // --- COMPREHENSIVE PRODUCTION DB MAPPING ENVIRONMENT LAYER ---
+  // Unifies your local dev assets structure with Render server schemas seamlessly
+  const API_BASE = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com";
+
+  // Aligns database keys (item_name, totalAmount) with front-end template structures safely
+  const activeProduct = {
+    id: product?._id || product?.id || null,
+    name: product?.item_name || product?.name || "UNNAMED_PROTOTYPE_ITEM",
+    price: product?.totalAmount || product?.price || 0,
+    description: product?.description || "No catalog data descriptive metadata payload supplied.",
+    image: product?.image || null // Explicitly preserves null values for the downstream sanitizer
   };
+
+  // --- DEFENSIVE IMAGE PATH RESOLUTION SHIELD ---
+  // Safely checks strings, intercepts null database variables, and injects default fallbacks
+  let cleanImageUrl = null;
+  if (activeProduct.image && typeof activeProduct.image === "string" && activeProduct.image.trim() !== "") {
+    cleanImageUrl = activeProduct.image.startsWith("http")
+      ? activeProduct.image
+      : `${API_BASE}${activeProduct.image}`;
+  }
 
   const handleCartAction = () => {
     if (addToCart) {
+      // Passes sanitized uniform product schema objects to your shopping cart array engine
       addToCart(activeProduct);
       
       // Provide instant visual micro-interaction feedback to prevent double-tapping
@@ -27,12 +42,18 @@ export default function MenuCard({ product, addToCart }) {
     <article style={styles.cardContainer}>
       {/* Product Interactive Display Frame Panel */}
       <div style={styles.imageFrame}>
-        {activeProduct.image ? (
+        {cleanImageUrl ? (
           <img 
-            src={activeProduct.image} 
+            src={cleanImageUrl} 
             alt={activeProduct.name} 
             style={styles.productImg} 
             loading="lazy"
+            onError={(e) => {
+              // Graceful fallback shield if a network asset path breaks on the server
+              e.target.onerror = null; 
+              e.target.style.display = 'none';
+              e.target.parentNode.innerHTML = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#020305;"><span style="font-size:2.5rem;opacity:0.25;">🍽️</span></div>`;
+            }}
           />
         ) : (
           <div style={styles.imagePlaceholder}>
@@ -64,6 +85,7 @@ export default function MenuCard({ product, addToCart }) {
           
           <button 
             type="button"
+            disabled={isAddedFeedback}
             onClick={handleCartAction}
             onMouseEnter={() => setIsBtnHovered(true)}
             onMouseLeave={() => setIsBtnHovered(false)}
@@ -71,7 +93,8 @@ export default function MenuCard({ product, addToCart }) {
               ...styles.actionBtn,
               backgroundColor: isAddedFeedback ? "#00ff41" : (isBtnHovered ? "#e2e8f0" : "#fff"),
               color: isAddedFeedback ? "#000" : "#000",
-              transform: isBtnHovered ? "translateY(-1px)" : "translateY(0)"
+              transform: isBtnHovered && !isAddedFeedback ? "translateY(-1px)" : "translateY(0)",
+              cursor: isAddedFeedback ? "not-allowed" : "pointer"
             }}
           >
             {isAddedFeedback ? "✓ PACKET_DISPATCHED" : "INITIALIZE_ORDER"}
@@ -197,7 +220,6 @@ const styles = {
     fontSize: "13px",
     fontWeight: "900",
     letterSpacing: "1px",
-    cursor: "pointer",
     textAlign: "center",
     transition: "all 0.15s ease-in-out"
   }
