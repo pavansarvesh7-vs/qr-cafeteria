@@ -16,19 +16,15 @@ export default function UserHome() {
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [isInitializingScan, setIsInitializingScan] = useState(false);
   const [isRadarHovered, setIsRadarHovered] = useState(false);
-  
-  // QR Camera Terminal State Engine
   const [isScanningCamera, setIsScanningCamera] = useState(false);
 
   const API_BASE = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com";
 
-  // Cache products state via mutable ref to break infinite evaluation dependencies inside hooks
   const productsRef = useRef([]);
   useEffect(() => {
     productsRef.current = products;
   }, [products]);
 
-  // Cache table identity query param
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const tableId = queryParams.get("table") || localStorage.getItem("assigned_vault_table") || "01";
 
@@ -107,7 +103,7 @@ export default function UserHome() {
     }
   }, []);
 
-  // 🛠️ FIX: Optimized Menu Database Data Polling Loop
+  // Menu Database Data Polling Loop
   useEffect(() => {
     let isMounted = true;
 
@@ -120,9 +116,6 @@ export default function UserHome() {
         .then((data) => {
           if (!isMounted) return;
 
-          // 🧠 OPTIMIZATION 1: Deep data comparison check
-          // If fresh incoming items match your current UI exactly, exit instantly.
-          // This keeps mobile device threads 100% free while scrolling.
           const rawComparisonString = JSON.stringify(data);
           const currentComparisonString = JSON.stringify(
             productsRef.current.map(({ name, price, image, description, ...rest }) => rest)
@@ -152,7 +145,6 @@ export default function UserHome() {
           setProducts(formatted);
           setError(null);
 
-          // 🧠 OPTIMIZATION 2: Do not disrupt active highlight nodes on poll updates
           setActiveProduct((prevActive) => {
             if (!formatted.length) return null;
             if (!prevActive) return formatted[0];
@@ -166,8 +158,6 @@ export default function UserHome() {
     };
 
     syncMenuFromDatabase();
-    
-    // 🧠 OPTIMIZATION 3: Relaxed poll interval (from 8s to 12s) to stabilize mobile networks
     const backgroundSyncTimer = setInterval(syncMenuFromDatabase, 12000);
     
     return () => {
@@ -176,7 +166,6 @@ export default function UserHome() {
     };
   }, [API_BASE]);
 
-  // Service Request Handler
   const handleServiceRequest = async (requestType) => {
     try {
       const response = await fetch(`${API_BASE}/api/orders/service-request`, {
@@ -270,7 +259,7 @@ export default function UserHome() {
                       ...styles.menuItemRow,
                       borderColor: isSelected ? "#00ff41" : "rgba(0, 255, 65, 0.15)",
                       boxShadow: isSelected ? "0 0 15px rgba(0, 255, 65, 0.15)" : "none",
-                      background: isSelected ? "rgba(0, 255, 65, 0.04)" : "rgba(11, 13, 19, 0.65)"
+                      background: isSelected ? "rgba(0, 255, 65, 0.08)" : "#0b0d13"
                     }}
                   >
                     <div style={styles.itemRowLeft}>
@@ -330,7 +319,7 @@ export default function UserHome() {
               boxShadow: isRadarHovered ? '0 0 25px rgba(0, 255, 65, 0.6)' : '0 0 20px rgba(0, 255, 65, 0.4)'
             }}
           >
-            🛰️ LIVE_TRACK_ACTIVE_ORDER // STATUS
+            🛰️ LIVE_TRACK_ACTIVE_ORDER
           </button>
         )}
 
@@ -357,8 +346,8 @@ export default function UserHome() {
           .app-main-layout {
             flex-direction: column-reverse !important; 
             align-items: center !important;
-            gap: 40px !important;
-            padding-bottom: 220px !important;
+            gap: 24px !important;
+            padding-bottom: 180px !important;
           }
           .app-main-layout section {
             max-width: 100% !important;
@@ -396,44 +385,44 @@ export default function UserHome() {
   );
 }
 
-// Styles configuration object remains completely identical
+// 🧠 OPTIMIZED STYLES MATRIX FOR NO-CRASH PERFORMANCE COMPILES
 const styles = {
-  appViewport: { backgroundColor: "#020305", minHeight: "100vh", width: "100vw", position: "relative", overflowX: "hidden" },
+  appViewport: { backgroundColor: "#020305", minHeight: "100vh", width: "100%", position: "relative", overflowX: "hidden" },
   contentSuperstructure: { position: "relative", zIndex: 10, minHeight: "100vh", width: "100%", display: "flex", flexDirection: "column" },
-  globalHeader: { padding: "20px 30px", background: "rgba(5, 6, 8, 0.75)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(0, 255, 65, 0.15)", display: "flex", justifyContent: "space-between", alignItems: "center", fontFamily: "'Share Tech Mono', monospace" },
-  brandTitle: { margin: 0, fontSize: "1.25rem", fontWeight: "900", letterSpacing: "2px", color: "#64748b" },
-  glowText: { color: "#00ff41", textShadow: "0 0 10px rgba(0, 255, 65, 0.3)" },
-  badgeContainer: { display: "flex", alignItems: "center", gap: "14px" },
-  headerScanTrigger: { background: "rgba(0, 255, 65, 0.08)", color: "#00ff41", border: "1px solid rgba(0, 255, 65, 0.4)", padding: "6px 12px", borderRadius: "6px", fontFamily: "'Share Tech Mono', monospace", fontSize: "11px", fontWeight: "bold", cursor: "pointer", transition: "all 0.2s" },
+  globalHeader: { padding: "20px 16px", background: "#050608", borderBottom: "1px solid rgba(0, 255, 65, 0.15)", display: "flex", justifyContent: "space-between", alignItems: "center", fontFamily: "'Share Tech Mono', monospace" },
+  brandTitle: { margin: 0, fontSize: "1.1rem", fontWeight: "900", letterSpacing: "1px", color: "#64748b" },
+  glowText: { color: "#00ff41" },
+  badgeContainer: { display: "flex", alignItems: "center", gap: "8px" },
+  headerScanTrigger: { background: "rgba(0, 255, 65, 0.08)", color: "#00ff41", border: "1px solid rgba(0, 255, 65, 0.4)", padding: "6px 10px", borderRadius: "6px", fontFamily: "'Share Tech Mono', monospace", fontSize: "10px", fontWeight: "bold", cursor: "pointer" },
   terminalBlink: { color: "#00ff41", fontSize: "10px", animation: "cyberPulse 1.5s infinite" },
-  tableBadge: { color: "#00ff41", fontSize: "12px", fontWeight: "700", letterSpacing: "1px" },
-  layoutMain: { flex: 1, width: "100%", maxWidth: "1150px", margin: "0 auto", padding: "40px 24px 120px 24px", display: "flex", justifyContent: "center", alignItems: "flex-start", gap: "50px", boxSizing: "border-box" },
+  tableBadge: { color: "#00ff41", fontSize: "11px", fontWeight: "700" },
+  layoutMain: { flex: 1, width: "100%", maxWidth: "1150px", margin: "0 auto", padding: "20px 16px 120px 16px", display: "flex", justifyContent: "center", alignItems: "flex-start", gap: "30px", boxSizing: "border-box" },
   directorySection: { flex: 1, maxWidth: "420px", width: "100%", display: "flex", flexDirection: "column", gap: "16px", fontFamily: "'Share Tech Mono', monospace" },
   sectionHeader: { borderBottom: "1px dashed rgba(0, 255, 65, 0.2)", paddingBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" },
   bracketTitle: { color: "#64748b", fontSize: "12px", letterSpacing: "1.5px", fontWeight: "bold" },
-  inlineWarning: { color: "#ff3b30", fontSize: "10px", fontWeight: "bold", letterSpacing: "0.5px" },
+  inlineWarning: { color: "#ff3b30", fontSize: "10px", fontWeight: "bold" },
   verticalListContainer: { display: "flex", flexDirection: "column", gap: "10px" },
-  menuItemRow: { borderWidth: "1px", borderStyle: "solid", borderRadius: "10px", padding: "18px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", backdropFilter: "blur(6px)", transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)" },
-  itemRowLeft: { display: "flex", alignItems: "center", gap: "14px" },
+  menuItemRow: { borderWidth: "1px", borderStyle: "solid", borderRadius: "10px", padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", transition: "transform 0.15s ease" },
+  itemRowLeft: { display: "flex", alignItems: "center", gap: "12px" },
   statusNodeDot: { fontSize: "11px", lineHeight: 1 },
-  itemRowName: { color: "#fff", fontSize: "15px", fontWeight: "600", letterSpacing: "0.5px", textTransform: "uppercase" },
+  itemRowName: { color: "#fff", fontSize: "14px", fontWeight: "600", textTransform: "uppercase" },
   itemRowPrice: { color: "#00ff41", fontSize: "14px", fontWeight: "700" },
   showcaseCardSection: { flex: 1, maxWidth: "430px", width: "100%", display: "flex", justifyContent: "center" },
   showcaseCenterStack: { width: "100%", display: "flex", flexDirection: "column", gap: "20px" },
   terminalError: { color: "#ff3b30", fontFamily: "'Share Tech Mono', monospace", fontSize: "14px", padding: "20px", background: "rgba(255,59,48,0.03)", border: "1px solid rgba(255,59,48,0.2)", borderRadius: "8px", width: "100%" },
-  hudDeckPanel: { background: "rgba(11, 13, 19, 0.8)", border: "1px solid rgba(0, 255, 65, 0.2)", boxShadow: "0 10px 30px rgba(0,0,0,0.4)", borderRadius: "16px", padding: "20px", backdropFilter: "blur(8px)", fontFamily: "'Share Tech Mono', monospace", display: "flex", flexDirection: "column", gap: "12px" },
+  hudDeckPanel: { background: "#0b0d13", border: "1px solid rgba(0, 255, 65, 0.2)", borderRadius: "16px", padding: "20px", fontFamily: "'Share Tech Mono', monospace", display: "flex", flexDirection: "column", gap: "12px" },
   hudHeaderLine: { color: "#64748b", fontSize: "11px", letterSpacing: "1px", fontWeight: "bold", borderBottom: "1px dashed rgba(0,255,65,0.1)", paddingBottom: "6px" },
   hudMetricRow: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" },
   hudLabel: { color: "#8fa0bc" },
   hudValue: { color: "#fff", fontWeight: "bold" },
-  hudValueHighlight: { color: "#00ff41", fontWeight: "bold", textShadow: "0 0 8px rgba(0,255,65,0.4)" },
-  floatingRadarBtn: { position: 'fixed', bottom: '96px', right: '24px', background: 'linear-gradient(135deg, #00ff41 0%, #00b32d 100%)', color: '#000', padding: '14px 22px', borderRadius: '50px', fontWeight: '900', fontSize: '11px', fontFamily: "'Share Tech Mono', monospace", letterSpacing: '1px', border: '1px solid rgba(0, 255, 65, 0.6)', cursor: 'pointer', zIndex: 9999, transition: 'all 0.2s ease-in-out' },
-  dockedFooter: { position: "fixed", bottom: 0, left: 0, width: "100%", padding: "16px 30px 24px 30px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "linear-gradient(to top, #020305 80%, transparent)", boxSizing: "border-box", gap: "20px", zIndex: 999 },
-  footerActionRow: { display: "flex", gap: "10px", flexWrap: "wrap", flex: 1, maxWidth: "calc(100% - 72px)" },
-  footerUtilityBtn: { background: "rgba(11, 13, 19, 0.85)", color: "#fff", border: "1px solid rgba(0, 255, 65, 0.2)", fontFamily: "'Share Tech Mono', monospace", padding: "14px 16px", fontSize: "12px", fontWeight: "bold", borderRadius: "10px", cursor: "pointer", flex: "1 1 auto", textAlign: "center", transition: "all 0.2s ease" },
+  hudValueHighlight: { color: "#00ff41", fontWeight: "bold" },
+  floatingRadarBtn: { position: 'fixed', bottom: '96px', right: '16px', background: 'linear-gradient(135deg, #00ff41 0%, #00b32d 100%)', color: '#000', padding: '12px 18px', borderRadius: '50px', fontWeight: '900', fontSize: '11px', fontFamily: "'Share Tech Mono', monospace", border: '1px solid rgba(0, 255, 65, 0.6)', cursor: 'pointer', zIndex: 9999 },
+  dockedFooter: { position: "fixed", bottom: 0, left: 0, width: "100%", padding: "12px 16px 20px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#020305", borderTop: "1px solid rgba(0, 255, 65, 0.1)", boxSizing: "border-box", gap: "12px", zIndex: 999 },
+  footerActionRow: { display: "flex", gap: "8px", flexWrap: "wrap", flex: 1, maxWidth: "calc(100% - 64px)" },
+  footerUtilityBtn: { background: "#0b0d13", color: "#fff", border: "1px solid rgba(0, 255, 65, 0.2)", fontFamily: "'Share Tech Mono', monospace", padding: "12px 8px", fontSize: "11px", fontWeight: "bold", borderRadius: "8px", cursor: "pointer", flex: "1 1 auto", textAlign: "center" },
   cartCircleAnchor: { display: "block" },
-  cartCircleBtn: { width: "54px", height: "54px", borderRadius: "50%", background: "#ff6b35", border: "none", fontSize: "20px", cursor: "pointer", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 20px rgba(255, 107, 53, 0.4)" },
-  cartCounterBadge: { position: "absolute", top: "-3px", right: "-3px", background: "#fff", color: "#ff6b35", width: "18px", height: "18px", borderRadius: "50%", fontSize: "10px", fontWeight: "900", display: "flex", alignItems: "center", justifyContent: "center" },
+  cartCircleBtn: { width: "48px", height: "48px", borderRadius: "50%", background: "#ff6b35", border: "none", fontSize: "18px", cursor: "pointer", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" },
+  cartCounterBadge: { position: "absolute", top: "-3px", right: "-3px", background: "#fff", color: "#ff6b35", width: "16px", height: "16px", borderRadius: "50%", fontSize: "9px", fontWeight: "900", display: "flex", alignItems: "center", justifyContent: "center" },
   scanOverlayContainer: { position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "#020305", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 10000 },
   scanOverlayContent: { display: "flex", flexDirection: "column", alignItems: "center", fontFamily: "'Share Tech Mono', monospace", zIndex: 10001 },
   glitchText: { color: "#00ff41", fontSize: "20px", letterSpacing: "3px", marginBottom: "8px", fontWeight: "bold" },
