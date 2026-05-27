@@ -1,25 +1,21 @@
 import React, { useState } from "react";
 
-// Changed props signature to expect a direct 'product' object instead of an artificial array container
 export default function MenuCard({ product, addToCart }) {
   const [isBtnHovered, setIsBtnHovered] = useState(false);
   const [isAddedFeedback, setIsAddedFeedback] = useState(false);
+  // 🧠 FIX: Use clean component state for image loading failure instead of mutating DOM directly
+  const [imgError, setImgError] = useState(false);
 
-  // --- COMPREHENSIVE PRODUCTION DB MAPPING ENVIRONMENT LAYER ---
-  // Unifies your local dev assets structure with Render server schemas seamlessly
   const API_BASE = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com";
 
-  // Aligns database keys (item_name, totalAmount) with front-end template structures safely
   const activeProduct = {
     id: product?._id || product?.id || null,
     name: product?.item_name || product?.name || "UNNAMED_PROTOTYPE_ITEM",
     price: product?.totalAmount || product?.price || 0,
     description: product?.description || "No catalog data descriptive metadata payload supplied.",
-    image: product?.image || null // Explicitly preserves null values for the downstream sanitizer
+    image: product?.image || null 
   };
 
-  // --- DEFENSIVE IMAGE PATH RESOLUTION SHIELD ---
-  // Safely checks strings, intercepts null database variables, and injects default fallbacks
   let cleanImageUrl = null;
   if (activeProduct.image && typeof activeProduct.image === "string" && activeProduct.image.trim() !== "") {
     cleanImageUrl = activeProduct.image.startsWith("http")
@@ -29,10 +25,7 @@ export default function MenuCard({ product, addToCart }) {
 
   const handleCartAction = () => {
     if (addToCart) {
-      // Passes sanitized uniform product schema objects to your shopping cart array engine
       addToCart(activeProduct);
-      
-      // Provide instant visual micro-interaction feedback to prevent double-tapping
       setIsAddedFeedback(true);
       setTimeout(() => setIsAddedFeedback(false), 800);
     }
@@ -40,20 +33,15 @@ export default function MenuCard({ product, addToCart }) {
 
   return (
     <article style={styles.cardContainer}>
-      {/* Product Interactive Display Frame Panel */}
       <div style={styles.imageFrame}>
-        {cleanImageUrl ? (
+        {/* 🧠 FIX: Use React declarative conditions. If there is no image or an error occurs, render the safe fallback placeholder element directly */}
+        {cleanImageUrl && !imgError ? (
           <img 
             src={cleanImageUrl} 
             alt={activeProduct.name} 
             style={styles.productImg} 
             loading="lazy"
-            onError={(e) => {
-              // Graceful fallback shield if a network asset path breaks on the server
-              e.target.onerror = null; 
-              e.target.style.display = 'none';
-              e.target.parentNode.innerHTML = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#020305;"><span style="font-size:2.5rem;opacity:0.25;">🍽️</span></div>`;
-            }}
+            onError={() => setImgError(true)}
           />
         ) : (
           <div style={styles.imagePlaceholder}>
@@ -61,13 +49,11 @@ export default function MenuCard({ product, addToCart }) {
           </div>
         )}
         
-        {/* Selection Status Badge Tag */}
         <div style={styles.selectionRibbon}>
           <span style={styles.pulseDot}>●</span> ACTIVE_SHOWCASE
         </div>
       </div>
 
-      {/* Main Structural Details Block Container */}
       <div style={styles.detailsContent}>
         <div style={styles.textGroup}>
           <h2 style={styles.productTitle}>{activeProduct.name}</h2>
@@ -76,7 +62,6 @@ export default function MenuCard({ product, addToCart }) {
           )}
         </div>
 
-        {/* Pricing Actions Group Segment Block */}
         <div style={styles.interactiveRow}>
           <div style={styles.priceContainer}>
             <span style={styles.priceLabel}>VAL_UNIT:</span>
@@ -92,7 +77,7 @@ export default function MenuCard({ product, addToCart }) {
             style={{
               ...styles.actionBtn,
               backgroundColor: isAddedFeedback ? "#00ff41" : (isBtnHovered ? "#e2e8f0" : "#fff"),
-              color: isAddedFeedback ? "#000" : "#000",
+              color: "#000",
               transform: isBtnHovered && !isAddedFeedback ? "translateY(-1px)" : "translateY(0)",
               cursor: isAddedFeedback ? "not-allowed" : "pointer"
             }}
