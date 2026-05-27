@@ -11,11 +11,18 @@ const app = express();
 // ==========================================
 // 2. GLOBAL MIDDLEWARE MATRIX
 // ==========================================
+// 🛠️ UPDATED: Hardened CORS topology to prevent mobile platform tracking blocks
 app.use(cors({
-  origin: '*',
+  origin: [
+    'https://qr-cafeteria-frontend.onrender.com', 
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
