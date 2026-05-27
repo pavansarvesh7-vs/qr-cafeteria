@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useMemo } from "react";
+import React, { useEffect, useState, useContext, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { CartContext } from "../../context/CartContext";
@@ -21,6 +21,12 @@ export default function UserHome() {
   const [isScanningCamera, setIsScanningCamera] = useState(false);
 
   const API_BASE = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com";
+
+  // Cache products state via mutable ref to break infinite evaluation dependencies inside hooks
+  const productsRef = useRef([]);
+  useEffect(() => {
+    productsRef.current = products;
+  }, [products]);
 
   // Cache table identity query param
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
@@ -51,7 +57,6 @@ export default function UserHome() {
     let scannerInstance = null;
 
     if (isScanningCamera) {
-      // Small timeout ensures the DOM node container exists before initializing
       const setupTimer = setTimeout(() => {
         scannerInstance = new Html5QrcodeScanner(
           "qr-reader-container",
@@ -60,12 +65,11 @@ export default function UserHome() {
             qrbox: { width: 250, height: 250 },
             rememberLastUsedCamera: true
           },
-          /* verbose= */ false
+          false
         );
 
         scannerInstance.render(
           (decodedText) => {
-            // EXPECTS QR TEXT LIKE: "https://yourdomain.com/user-home?table=04" or plain JSON / numbers
             try {
               let parsedTable = decodedText;
               if (decodedText.includes("table=")) {
@@ -73,20 +77,16 @@ export default function UserHome() {
                 parsedTable = urlObj.searchParams.get("table") || "01";
               }
               
-              // Apply extracted node configuration states to local engine blocks
               localStorage.setItem("assigned_vault_table", parsedTable);
               scannerInstance.clear().then(() => {
                 setIsScanningCamera(false);
-                // Relocate layout focus to the target node cleanly
                 window.location.href = `/user-home?table=${parsedTable}&scan=true`;
               });
             } catch (err) {
               console.error("Matrix compilation error mapping code contents:", err);
             }
           },
-          (errorMessage) => {
-            // Non-critical diagnostic streaming outputs are suppressed to avoid log pollution
-          }
+          (errorMessage) => {}
         );
       }, 100);
 
@@ -107,8 +107,10 @@ export default function UserHome() {
     }
   }, []);
 
-  // Menu Database Data Polling Loop
+  // 🛠️ FIX: Optimized Menu Database Data Polling Loop
   useEffect(() => {
+    let isMounted = true;
+
     const syncMenuFromDatabase = () => {
       fetch(`${API_BASE}/api/products`)
         .then((res) => {
@@ -116,6 +118,20 @@ export default function UserHome() {
           return res.json();
         })
         .then((data) => {
+          if (!isMounted) return;
+
+          // 🧠 OPTIMIZATION 1: Deep data comparison check
+          // If fresh incoming items match your current UI exactly, exit instantly.
+          // This keeps mobile device threads 100% free while scrolling.
+          const rawComparisonString = JSON.stringify(data);
+          const currentComparisonString = JSON.stringify(
+            productsRef.current.map(({ name, price, image, description, ...rest }) => rest)
+          );
+
+          if (productsRef.current.length > 0 && rawComparisonString === currentComparisonString) {
+            return; 
+          }
+
           const formatted = data.map((item) => {
             let sanitizedImage = null;
             if (item.image && typeof item.image === "string" && item.image.trim() !== "") {
@@ -136,6 +152,7 @@ export default function UserHome() {
           setProducts(formatted);
           setError(null);
 
+          // 🧠 OPTIMIZATION 2: Do not disrupt active highlight nodes on poll updates
           setActiveProduct((prevActive) => {
             if (!formatted.length) return null;
             if (!prevActive) return formatted[0];
@@ -144,13 +161,19 @@ export default function UserHome() {
         })
         .catch((err) => {
           console.error("Background sync fault:", err);
-          setError("Menu stream sync interrupted. Reconnecting...");
+          if (isMounted) setError("Menu stream sync interrupted. Reconnecting...");
         });
     };
 
     syncMenuFromDatabase();
-    const backgroundSyncTimer = setInterval(syncMenuFromDatabase, 8000);
-    return () => clearInterval(backgroundSyncTimer);
+    
+    // 🧠 OPTIMIZATION 3: Relaxed poll interval (from 8s to 12s) to stabilize mobile networks
+    const backgroundSyncTimer = setInterval(syncMenuFromDatabase, 12000);
+    
+    return () => {
+      isMounted = false;
+      clearInterval(backgroundSyncTimer);
+    };
   }, [API_BASE]);
 
   // Service Request Handler
@@ -193,7 +216,6 @@ export default function UserHome() {
     <div style={styles.appViewport}>
       <GridBackground />
 
-      {/* COMPONENT VIEWPORT OVERLAY LAYER: Appends camera capture deck on state toggle */}
       {isScanningCamera && (
         <div style={styles.cameraLightBoxOverlay}>
           <div style={styles.scannerInterfacePanel}>
@@ -219,7 +241,6 @@ export default function UserHome() {
             VAULT <span style={styles.glowText}>// DIGITAL_MENU</span>
           </h1>
           <div style={styles.badgeContainer}>
-            {/* MANUAL OVERRIDE INTERACTION SYSTEM LINK */}
             <button 
               type="button" 
               onClick={() => setIsScanningCamera(true)} 
@@ -352,7 +373,6 @@ export default function UserHome() {
           0% { left: -60px; }
           100% { left: 180px; }
         }
-        /* Native library rendering style alignments */
         #qr-reader-container button {
           background: #00ff41 !important;
           color: #000 !important;
@@ -376,6 +396,7 @@ export default function UserHome() {
   );
 }
 
+// Styles configuration object remains completely identical
 const styles = {
   appViewport: { backgroundColor: "#020305", minHeight: "100vh", width: "100vw", position: "relative", overflowX: "hidden" },
   contentSuperstructure: { position: "relative", zIndex: 10, minHeight: "100vh", width: "100%", display: "flex", flexDirection: "column" },
@@ -419,8 +440,6 @@ const styles = {
   tableNodeBadge: { color: "#64748b", fontSize: "12px", letterSpacing: "1px", marginBottom: "20px" },
   progressBarTrack: { width: "180px", height: "2px", background: "rgba(0, 255, 65, 0.15)", position: "relative", overflow: "hidden" },
   progressBarFill: { position: "absolute", width: "60px", height: "100%", background: "#00ff41", animation: "scanProgress 1.2s infinite ease-in-out" },
-  
-  // Custom HUD styles for the QR Viewport
   cameraLightBoxOverlay: { position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "rgba(2, 3, 5, 0.95)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 11000, padding: "20px", boxSizing: "border-box" },
   scannerInterfacePanel: { width: "100%", maxWidth: "500px", background: "#0b0d13", border: "2px solid #00ff41", borderRadius: "16px", padding: "24px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: "16px", fontFamily: "'Share Tech Mono', monospace" },
   scannerHeaderRow: { display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(0, 255, 65, 0.2)", paddingBottom: "12px" },
