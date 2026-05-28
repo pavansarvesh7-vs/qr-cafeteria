@@ -5,7 +5,7 @@ import { CartContext } from "../../context/CartContext";
 import MenuCard from "./MenuCard";
 import GridBackground from "./GridBackground";
 
-// 🧠 Memoize row components to prevent mobile CPU cycles during touch interaction
+// Memoize row components to prevent mobile CPU cycles during touch interaction
 const MenuListItem = React.memo(({ item, isSelected, onClick }) => {
   return (
     <div
@@ -31,7 +31,6 @@ export default function UserHome() {
 
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [isInitializingScan, setIsInitializingScan] = useState(false);
-  const [isRadarHovered, setIsRadarHovered] = useState(false);
   const [isScanningCamera, setIsScanningCamera] = useState(false);
 
   const API_BASE = import.meta.env.VITE_API_URL || "https://qr-cafeteria.onrender.com";
@@ -65,6 +64,10 @@ export default function UserHome() {
 
     if (isScanningCamera) {
       const setupTimer = setTimeout(() => {
+        // Double-check element existence before initializing library instance
+        const targetNode = document.getElementById("qr-reader-container");
+        if (!targetNode) return;
+
         scannerInstance = new Html5QrcodeScanner(
           "qr-reader-container",
           { 
@@ -85,17 +88,21 @@ export default function UserHome() {
               }
               
               localStorage.setItem("assigned_vault_table", parsedTable);
-              scannerInstance.clear().then(() => {
-                setIsScanningCamera(false);
-                window.location.href = `/user-home?table=${parsedTable}&scan=true`;
-              });
+              
+              if (scannerInstance) {
+                scannerInstance.clear().then(() => {
+                  setIsScanningCamera(false);
+                  // 🧠 FIX: Avoid window.location.href loops. Use native React Router state changes instead.
+                  navigate(`/user-home?table=${parsedTable}&scan=true`);
+                }).catch((err) => console.error("Scanner clear step error:", err));
+              }
             } catch (err) {
               console.error("Scanner tracking exception:", err);
             }
           },
           () => {}
         );
-      }, 100);
+      }, 200); // Increased buffer delay time slightly for slower mobile hardware layers
 
       return () => {
         clearTimeout(setupTimer);
@@ -104,7 +111,7 @@ export default function UserHome() {
         }
       };
     }
-  }, [isScanningCamera]);
+  }, [isScanningCamera, navigate]);
 
   // Sync Session Cache
   useEffect(() => {
@@ -114,7 +121,7 @@ export default function UserHome() {
     }
   }, []);
 
-  // Structural Polling Loop - Completely Isolated from Render Operations
+  // Structural Polling Loop
   useEffect(() => {
     let isMounted = true;
 
@@ -128,7 +135,6 @@ export default function UserHome() {
           if (!isMounted || !data) return;
 
           setProducts((currentProducts) => {
-            // Drop tracking if length match to protect mobile memory stacks
             if (currentProducts.length === data.length && currentProducts[0]?._id === data[0]?._id) {
               return currentProducts;
             }
@@ -168,7 +174,6 @@ export default function UserHome() {
     };
 
     syncMenuFromDatabase();
-    // 🧠 20-second delay prevents network payload intersections while navigating via a phone
     const backgroundSyncTimer = setInterval(syncMenuFromDatabase, 20000);
     
     return () => {
@@ -212,19 +217,21 @@ export default function UserHome() {
     <div style={styles.appViewport}>
       <GridBackground />
 
-      {isScanningCamera && (
-        <div style={styles.cameraLightBoxOverlay}>
-          <div style={styles.scannerInterfacePanel}>
-            <div style={styles.scannerHeaderRow}>
-              <div style={styles.scannerCardTitle}>⚡ HARDWARE_CAMERA_LINK</div>
-              <button type="button" onClick={() => setIsScanningCamera(false)} style={styles.closeScannerBtn}>
-                [ TERMINATE ]
-              </button>
-            </div>
-            <div id="qr-reader-container" style={styles.nativeCameraHole}></div>
+      {/* 🧠 FIX: Keep camera light box structurally mounted to avoid DOM layout shifts. Control display property smoothly. */}
+      <div style={{
+        ...styles.cameraLightBoxOverlay,
+        display: isScanningCamera ? "flex" : "none"
+      }}>
+        <div style={styles.scannerInterfacePanel}>
+          <div style={styles.scannerHeaderRow}>
+            <div style={styles.scannerCardTitle}>⚡ HARDWARE_CAMERA_LINK</div>
+            <button type="button" onClick={() => setIsScanningCamera(false)} style={styles.closeScannerBtn}>
+              [ TERMINATE ]
+            </button>
           </div>
+          <div id="qr-reader-container" style={styles.nativeCameraHole}></div>
         </div>
-      )}
+      </div>
 
       <div style={styles.contentSuperstructure}>
         <header style={styles.globalHeader}>
@@ -305,7 +312,6 @@ export default function UserHome() {
       </div>
 
       <style>{`
-        /* 🧠 FORCE HARDWARE GRAPHICS LAYERS FOR TOUCH MECHANICS */
         .menu-row {
           border: 1px solid rgba(0, 255, 65, 0.15);
           border-radius: 10px;
@@ -382,7 +388,7 @@ const styles = {
   tableNodeBadge: { color: "#64748b", fontSize: "12px", marginBottom: "20px" },
   progressBarTrack: { width: "180px", height: "2px", background: "rgba(0, 255, 65, 0.15)", position: "relative", overflow: "hidden" },
   progressBarFill: { position: "absolute", width: "60px", height: "100%", background: "#00ff41", animation: "scanProgress 1.2s infinite ease-in-out" },
-  cameraLightBoxOverlay: { position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "rgba(2, 3, 5, 0.95)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 11000, padding: "20px" },
+  cameraLightBoxOverlay: { position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "rgba(2, 3, 5, 0.95)", justifyContent: "center", alignItems: "center", zIndex: 11000, padding: "20px" },
   scannerInterfacePanel: { width: "100%", maxWidth: "500px", background: "#0b0d13", border: "2px solid #00ff41", borderRadius: "16px", padding: "24px", display: "flex", flexDirection: "column", gap: "16px", fontFamily: "'Share Tech Mono', monospace" },
   scannerHeaderRow: { display: "flex", justifyContent: "space-between", alignItems: "center" },
   scannerCardTitle: { color: "#fff", fontWeight: "bold" },
